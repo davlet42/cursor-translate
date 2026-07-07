@@ -1,6 +1,6 @@
 {
   "name": "cursor-translate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Token-saving RU→EN translation layer for Cursor IDE, CLI, and SDK",
   "license": "MIT",
