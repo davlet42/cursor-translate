@@ -242,6 +242,7 @@ translator:
 - **[Cloud Agents playbook](./docs/cloud-agents.md)** — MCP checklist, cache warmup, IDE hooks gap
 - **[Publishing to npm](./docs/publishing.md)** — package publish order
 - **[Cursor Marketplace](./docs/marketplace.md)** — plugin submission checklist
+- **[Marketplace listing text](./docs/marketplace-listing.md)** — copy-paste for submit form
 
 ## License
 

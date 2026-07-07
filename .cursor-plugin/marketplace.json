@@ -1,0 +1,16 @@
+{
+  "name": "cursor-translate",
+  "owner": {
+    "name": "davlet42"
+  },
+  "metadata": {
+    "description": "Token-saving RU→EN translation layer for Cursor agents (hooks, MCP, CLI)"
+  },
+  "plugins": [
+    {
+      "name": "cursor-translate",
+      "source": "plugin",
+      "description": "Serve Cyrillic docs in English, MCP translate/resolve_doc, token metrics"
+    }
+  ]
+}
