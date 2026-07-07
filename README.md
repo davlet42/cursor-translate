@@ -53,24 +53,14 @@ Override: `CURSOR_TRANSLATE_MODEL=gpt-5.4-nano-low` or set `translator.model` in
 
 ## Installation
 
-### From source (development)
+### npm (recommended)
+
+Published packages: [`cursor-translate`](https://www.npmjs.com/package/cursor-translate), [`@cursor-translate/mcp`](https://www.npmjs.com/package/@cursor-translate/mcp), [`@cursor-translate/core`](https://www.npmjs.com/package/@cursor-translate/core).
 
 ```bash
-git clone …/cursor-translate && cd cursor-translate
-npm install && npm run build
-node packages/cli/dist/cli.js init --path
-source ~/.zshrc   # or open a new terminal
-cursor-translate report --days 7
-```
-
-`init --path` adds `~/.cursor/translate-proxy/bin` to your shell `PATH` (idempotent).
-
-### After npm publish (end users)
-
-```bash
-npm install -g cursor-translate
+npm install -g cursor-translate @cursor-translate/mcp
 cursor-translate init --path
-source ~/.zshrc
+source ~/.zshrc   # or open a new terminal
 cursor-translate docs --dry-run
 ```
 
@@ -80,7 +70,27 @@ Without global install:
 npx cursor-translate init --path
 ```
 
-### Plugin (optional)
+`init --path` adds `~/.cursor/translate-proxy/bin` to your shell `PATH` (idempotent). Requires `agent` CLI logged in (Cursor subscription).
+
+**Plugin + MCP** (after global install):
+
+```bash
+ln -sf "$(npm root -g)/cursor-translate/plugin" ~/.cursor/plugins/local/cursor-translate
+```
+
+Enable **cursor-translate** in Cursor settings → restart Cursor. See **[docs/mcp-setup.md](./docs/mcp-setup.md)**.
+
+### From source (development)
+
+```bash
+git clone https://github.com/davlet42/cursor-translate.git && cd cursor-translate
+npm install && npm run build
+npm run test
+cursor-translate init --path
+source ~/.zshrc
+```
+
+Dev plugin symlink:
 
 ```bash
 ln -sf "$(pwd)/plugin" ~/.cursor/plugins/local/cursor-translate
@@ -89,8 +99,11 @@ ln -sf "$(pwd)/plugin" ~/.cursor/plugins/local/cursor-translate
 ## Quick start
 
 ```bash
-npm install && npm run build
-node packages/cli/dist/cli.js init --path
+npm install -g cursor-translate @cursor-translate/mcp
+cursor-translate init --path
+source ~/.zshrc
+cd ~/Projects/your-repo
+cursor-translate docs
 ```
 
 Requires `agent` CLI logged in (Cursor subscription).
@@ -113,8 +126,8 @@ Requires `agent` CLI logged in (Cursor subscription).
 
 ```bash
 cd ~/Projects/crypto3
-node ~/Projects/cursor-translate/packages/cli/dist/cli.js docs --dry-run
-node ~/Projects/cursor-translate/packages/cli/dist/cli.js docs --include-gitignored --dry-run
+cursor-translate docs --dry-run
+cursor-translate docs --include-gitignored --dry-run
 # → ~/.cursor/translate-proxy/cache/crypto3/ROADMAP.en.md
 ```
 
@@ -162,6 +175,14 @@ User RU → nano (translate in)
 ```
 
 ## Cursor Plugin
+
+**npm install:**
+
+```bash
+ln -sf "$(npm root -g)/cursor-translate/plugin" ~/.cursor/plugins/local/cursor-translate
+```
+
+**From source:**
 
 ```bash
 ln -sf "$(pwd)/plugin" ~/.cursor/plugins/local/cursor-translate

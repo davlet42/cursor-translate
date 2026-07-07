@@ -101,13 +101,19 @@ ln -sf "$(npm root -g)/cursor-translate/plugin" ~/.cursor/plugins/local/cursor-t
 
 ---
 
-## CI (future)
+## CI (GitHub Actions)
 
-Add GitHub Actions on tag:
+On every push/PR to `main`: `npm test` (`.github/workflows/ci.yml`).
 
-- `npm test`
-- `npm publish` with `NPM_TOKEN`
-- Optional: attach `cursor-translate` tarball to GitHub Release
+On tag `v*`: publish core → mcp → cli (`.github/workflows/publish.yml`).
+
+Add repository secret **`NPM_TOKEN`** — npm access token with publish rights for `@cursor-translate/*` and `cursor-translate`. Create at [npmjs.com/settings/~/tokens](https://www.npmjs.com/settings/~/tokens) (type: **Automation** or **Publish**).
+
+```bash
+git tag v0.1.1 && git push origin v0.1.1   # triggers publish workflow
+```
+
+Bump `version` in all three `package.json` files before tagging.
 
 ---
 
