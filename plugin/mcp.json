@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cursor-translate": {
+      "command": "cursor-translate-mcp",
+      "env": {}
+    }
+  }
+}

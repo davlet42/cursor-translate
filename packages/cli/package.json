@@ -1,0 +1,21 @@
+{
+  "name": "cursor-translate",
+  "version": "0.1.0",
+  "description": "CLI for cursor-translate token-saving layer",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "cursor-translate": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+    "@cursor-translate/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

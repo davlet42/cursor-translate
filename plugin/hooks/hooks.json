@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "hooks/translate-lazy-read.sh",
+        "matcher": "Read",
+        "timeout": 600
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "hooks/translate-audit.sh",
+        "matcher": "UserPromptSubmit",
+        "timeout": 5
+      }
+    ],
+    "afterAgentResponse": [
+      {
+        "command": "hooks/translate-audit-response.sh",
+        "timeout": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "hooks/translate-audit-read.sh",
+        "matcher": "Read",
+        "timeout": 5
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": "hooks/translate-audit-subagent-start.sh",
+        "timeout": 5
+      }
+    ],
+    "subagentStop": [
+      {
+        "command": "hooks/translate-audit-subagent-stop.sh",
+        "timeout": 5
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "hooks/translate-session.sh",
+        "timeout": 3
+      }
+    ]
+  }
+}

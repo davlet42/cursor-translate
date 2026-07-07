@@ -1,0 +1,54 @@
+enabled: true
+
+min_cyrillic_ratio: 0.15
+min_chars_to_translate: 120
+
+translator:
+  # Default: Cursor subscription via `agent` CLI — NOT a separate OpenAI API key.
+  provider: cursor-cli
+  # Cheap translate tier only (main agent model in IDE is unchanged).
+  model: gpt-5.4-nano-none
+  # When included API quota for nano/external tier is exhausted, doc cache uses this model.
+  doc_fallback_model: composer-2.5
+  # CI/headless only:
+  # provider: openai
+  # model: gpt-5-nano
+
+target:
+  expensive_model_patterns:
+    - "claude-sonnet.*"
+    - "claude-opus.*"
+    - "composer.*"
+    - "gpt-5\\.4-high.*"
+    - "gpt-5\\.5-high.*"
+
+response:
+  user_language: ru
+  # Phase 2 prompt wrapper — skipped automatically when doc-translate quota is exhausted.
+  prompt_translate: true
+  back_translate: true
+
+cache:
+  location: global
+  dir: ~/.cursor/translate-proxy/cache
+  ttl_days: 30
+
+glossary:
+  file: ~/.cursor/translate-proxy/glossary.yaml
+  merge_project: true
+  project_file: .cursor/cursor-translate-glossary.yaml
+
+# Optional global translate rules (see also project CURSOR.md § cursor-translate):
+# rules_file: ~/.cursor/translate-proxy/cursor-translate-rules.md
+
+metrics:
+  log_path: ~/.cursor/translate-proxy/metrics.jsonl
+
+safety:
+  fail_open: true
+  max_latency_ms: 2500
+
+hooks:
+  audit_enabled: true
+  merge_user_hooks: true
+  lazy_read_timeout_sec: 600

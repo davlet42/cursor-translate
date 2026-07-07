@@ -1,0 +1,23 @@
+# Default glossary — extend per project in .cursor/translate-glossary.yaml
+
+exact:
+  - simulate
+  - recordForcedExit
+  - TradingDecisionService
+  - app.inject
+  - ROADMAP.md
+  - SERVICE_OVERVIEW.md
+  - npm run
+  - docker compose
+  - Prisma
+  - NestJS
+
+patterns:
+  - 'src/[\w./-]+'
+  - '`[^`]+`'
+  - 'AUD-[A-Z]+-\d+'
+  - 'BL-\d+'
+  - 'P\d+\.\d+'
+  - 'gh pr \d+'
+
+replacements: {}

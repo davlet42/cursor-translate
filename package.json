@@ -1,0 +1,23 @@
+{
+  "name": "cursor-translate",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Token-saving RU→EN translation layer for Cursor IDE, CLI, and SDK",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "bin": {
+    "cursor-translate": "./packages/cli/dist/cli.js",
+    "cursor-translate-mcp": "./packages/mcp/dist/server.js"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "cursor-translate": "node packages/cli/dist/cli.js",
+    "lint": "eslint packages --ext .ts",
+    "test": "npm test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

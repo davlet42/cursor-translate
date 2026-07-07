@@ -1,0 +1,56 @@
+---
+description: When to call cursor-translate MCP tools (translate, resolve_doc)
+alwaysApply: true
+---
+
+# cursor-translate MCP — agent playbook
+
+MCP server **`cursor-translate`** exposes **`translate`** and **`resolve_doc`**. Hooks cannot rewrite the user's Send — **you must call MCP** when the rules below apply. Do not skip MCP and read Cyrillic docs or long RU prompts directly.
+
+## Mandatory triggers
+
+| Trigger | Required MCP call |
+|---|---|
+| User message is **>120 Cyrillic chars** (instructions, specs, pasted prose) | **`translate`** with `direction: ru_en` **before** planning or `Read`/`Grep` on docs |
+| Need content from a Cyrillic **`.md` / `.mdx`** doc and lazy read is uncertain (Cloud, MCP-first workflow) | **`resolve_doc`** with absolute `file_path` and `include_body: true` |
+| Long **English** reply to a Russian-speaking user | **`translate`** with `direction: en_ru` on user-facing prose (not code) |
+
+If you are about to `Read` `SERVICE_OVERVIEW.md`, `ROADMAP.md`, or similar RU project docs for reasoning — call **`resolve_doc`** first (or confirm lazy read returned an EN `readPath`).
+
+## `translate` — RU↔EN prose
+
+| `direction` | When to call |
+|---|---|
+| **`ru_en`** | Before heavy reasoning on long Russian instructions, subagent task text, or pasted RU prose (> ~120 chars, mostly Cyrillic). Use the returned `text` as the working English version. |
+| **`en_ru`** | Before sending a long English reply when the user writes in Russian and expects Russian. Skip for code blocks, paths, and identifiers. |
+
+**Parameters:** `text` (required), `direction`, `force` (only if result was `skipped` and translation is still needed), `project_slug` (git repo name, e.g. `crypto3`).
+
+**Skip MCP `translate` when:**
+
+- User message is short («сделай фикс», «да», «продолжай»).
+- Response JSON has `"skipped": true` and `reason` is `below_min_chars`, `breakeven_skip`, or `quota_blocked` — proceed without retry unless user insists.
+- Content is code, diffs, file paths, env vars, or task IDs (`AUD-*`, `BL-*`).
+
+## `resolve_doc` — Cyrillic markdown
+
+| Situation | Action |
+|---|---|
+| **Local IDE**, reading `.md` / `.mdx` | Prefer **`resolve_doc`** with **absolute** `file_path` when the doc drives your answer; or `Read` only if you know lazy read serves EN cache. |
+| **Cloud Agent** or no lazy-read hook | Call **`resolve_doc`** with absolute `file_path` and `include_body: true` — never read the Russian source path directly. |
+| Need EN body in one step without `Read` | `resolve_doc` + `include_body: true`. |
+
+Use `readPath` / `body` from the tool result. Never paraphrase from memory when the doc matters.
+
+**Always pass absolute paths** (e.g. `/Users/you/Projects/crypto3/SERVICE_OVERVIEW.md`), not bare filenames.
+
+## Workflow (Russian user, token-aware)
+
+1. **Long RU ask:** `translate` (`ru_en`) → reason on English `text`.
+2. **Docs:** `resolve_doc` (absolute path, `include_body: true`) — then reason on `body`.
+3. **Subagents:** `translate` (`ru_en`) on RU task text before `Task` / subagent prompt.
+4. **Reply:** if the user chats in RU and the answer is long prose, `translate` (`en_ru`) on the user-facing text (not on code).
+
+## Never translate
+
+Source code, fenced blocks, inline code, paths, URLs, branch names, env vars, class/method names, glossary terms from `.cursor/cursor-translate-glossary.yaml`.

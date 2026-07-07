@@ -1,0 +1,25 @@
+{
+  "name": "@cursor-translate/mcp",
+  "version": "0.1.0",
+  "description": "MCP server — translate tool for Cursor agents (Cloud + IDE)",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "cursor-translate-mcp": "./dist/server.js"
+  },
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@cursor-translate/core": "0.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

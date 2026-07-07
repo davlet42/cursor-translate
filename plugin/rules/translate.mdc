@@ -1,0 +1,21 @@
+---
+description: Token-saving language policy — lazy EN doc cache, preserve code terms
+alwaysApply: true
+---
+
+# cursor-translate language policy
+
+- **Lazy translate (automatic):** `preToolUse` on `Read` rewrites `.md`/`.mdx` paths to the English cache when the source has Cyrillic. Missing or stale cache → translate on the fly, write cache, read EN. Run `cursor-translate init` to install hooks + CLI wrapper.
+- Manual resolve: `cursor-translate resolve <file> --json` → use `readPath` from output.
+- Cache location: `~/.cursor/translate-proxy/cache/<project>/` (same relative path, `.en.md` suffix). Frontmatter `cursor-translate-source-sha256` tracks freshness.
+- Batch warm-up: `cursor-translate docs` or `docs --include-gitignored`.
+- **Custom translate rules** (merged into the translator prompt), first match wins:
+  1. `.cursor/cursor-translate.md` (full file)
+  2. `## cursor-translate` section in project `CURSOR.md` or `AGENTS.md`
+  3. `~/.cursor/translate-proxy/cursor-translate-rules.md` (global)
+- Glossary: `.cursor/cursor-translate-glossary.yaml` + `~/.cursor/translate-proxy/glossary.yaml`
+- User chat may be in Russian; **reason and tool arguments in English** when it reduces ambiguity.
+- **Never translate or rename:** source code, file paths, env vars, CLI commands, branch names, task IDs (`AUD-*`, `BL-*`, `P4.*`), class/method names.
+- **Quota exhausted:** doc cache falls back to `composer-2.5`; prompts and response back-translate are skipped (fail-open, Russian passthrough).
+- **CLI (terminal):** `cursor-translate agent -- "<RU prompt>"` — full RU→agent→RU outside IDE.
+- **MCP server `cursor-translate`:** when enabled, call tools per `mcp-translate.mdc` — `translate` (`ru_en` / `en_ru`) and `resolve_doc` (Cloud / explicit doc fetch). IDE Send is not auto-translated; you must invoke MCP.

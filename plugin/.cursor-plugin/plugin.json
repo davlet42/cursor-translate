@@ -1,0 +1,9 @@
+{
+  "name": "cursor-translate",
+  "version": "0.1.0",
+  "description": "Token-saving RU→EN translation for Cursor agents (hooks, rules, glossary)",
+  "author": "davlet42",
+  "license": "MIT",
+  "repository": "https://github.com/davlet42/cursor-translate",
+  "keywords": ["cursor", "translation", "tokens", "cyrillic", "agents"]
+}
