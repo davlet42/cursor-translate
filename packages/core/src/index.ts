@@ -36,4 +36,6 @@ export type { RunCursorAgentResult } from './agent/run-cursor-agent.js';
 export type { TranslateConfig } from './interfaces/translate-config.interface.js';
 export type { TranslateDocResult } from './cache/translate-doc-to-global-cache.js';
 export type { ResolveDocForReadResult, ResolveDocAction } from './cache/resolve-doc-for-read.js';
-export type { LoadedTranslateConfig } from './config/load-translate-config.js';
+export { appendCursorAgentTrustArgs } from './agent/append-cursor-agent-trust-args.js';
+export { resolveProjectRoot } from './project/resolve-project-root.js';
+export { resolveInstallRoot } from './helpers/resolve-install-root.js';

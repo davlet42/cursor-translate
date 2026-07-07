@@ -15,7 +15,9 @@
     "build": "npm run build --workspaces --if-present",
     "cursor-translate": "node packages/cli/dist/cli.js",
     "lint": "eslint packages --ext .ts",
-    "test": "npm test --workspaces --if-present"
+    "test": "npm run build && node --test test/*.test.mjs",
+    "verify:mcp": "bash scripts/verify-mcp.sh",
+    "prepare:publish": "bash scripts/prepare-publish.sh"
   },
   "engines": {
     "node": ">=20"

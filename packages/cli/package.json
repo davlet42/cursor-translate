@@ -4,15 +4,28 @@
   "description": "CLI for cursor-translate token-saving layer",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davlet42/cursor-translate.git",
+    "directory": "packages/cli"
+  },
   "bin": {
     "cursor-translate": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "plugin",
+    "templates"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {
     "@cursor-translate/core": "0.1.0"
+  },
+  "optionalDependencies": {
+    "@cursor-translate/mcp": "0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

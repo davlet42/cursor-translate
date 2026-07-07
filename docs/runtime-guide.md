@@ -47,6 +47,8 @@ Prompts are **not** tool calls, so this mechanism does not apply to Send.
 
 `beforeSubmitPrompt` / `afterAgentResponse` from `~/.cursor/hooks.json` **do not run** for cloud sessions started from the web UI. Use EN doc cache in the repo, MCP, or SDK pre-translate instead.
 
+**Playbook:** [cloud-agents.md](./cloud-agents.md) — warmup, MCP checklist, agent workflow.
+
 ---
 
 ## What you can do today

@@ -1,11 +1,17 @@
 import { copyFile, mkdir, readFile, writeFile, chmod, access } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { setupShellPath } from './setup-shell-path.js';
+import {
+  resolveBundledCliEntry,
+  resolveBundledMcpServer,
+  resolveInitInstallRoot,
+  resolveInitModuleDir,
+} from '../helpers/resolve-init-paths.js';
 
-const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
+const MODULE_DIR = resolveInitModuleDir();
+const INSTALL_ROOT = resolveInitInstallRoot(MODULE_DIR);
 const HOME = homedir();
 const TRANSLATE_HOME = join(HOME, '.cursor', 'translate-proxy');
 const USER_HOOKS = join(HOME, '.cursor', 'hooks.json');
@@ -66,13 +72,13 @@ async function exists(path: string): Promise<boolean> {
 }
 
 async function installMcpWrapper(dryRun: boolean, created: string[], updated: string[]): Promise<void> {
-  const mcpSource = join(REPO_ROOT, 'packages/mcp/dist/server.js');
-  const binDir = join(TRANSLATE_HOME, 'bin');
-  const wrapperPath = join(binDir, 'cursor-translate-mcp');
-
-  if (!(await exists(mcpSource))) {
+  const mcpSource = resolveBundledMcpServer(INSTALL_ROOT);
+  if (!mcpSource) {
     return;
   }
+
+  const binDir = join(TRANSLATE_HOME, 'bin');
+  const wrapperPath = join(binDir, 'cursor-translate-mcp');
 
   const wrapper = `#!/usr/bin/env bash
 set -euo pipefail
@@ -93,7 +99,7 @@ exec node "${mcpSource}" "$@"
 }
 
 async function installCliWrapper(dryRun: boolean, created: string[], updated: string[]): Promise<void> {
-  const cliSource = join(REPO_ROOT, 'packages/cli/dist/cli.js');
+  const cliSource = resolveBundledCliEntry(MODULE_DIR);
   const binDir = join(TRANSLATE_HOME, 'bin');
   const wrapperPath = join(binDir, 'cursor-translate');
 
@@ -147,7 +153,7 @@ async function installHookAsset(
   created: string[],
   updated: string[],
 ): Promise<void> {
-  const from = join(REPO_ROOT, 'plugin', 'hooks', filename);
+  const from = join(INSTALL_ROOT, 'plugin', 'hooks', filename);
   const to = join(TRANSLATE_HOME, 'hooks', filename);
   const dest = filename.endsWith('.mjs')
     ? join(TRANSLATE_HOME, filename)
@@ -251,14 +257,14 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
   await ensureDir(join(TRANSLATE_HOME, 'hooks'), dryRun);
 
   await copyTemplate(
-    join(REPO_ROOT, 'templates', 'config.yaml'),
+    join(INSTALL_ROOT, 'templates', 'config.yaml'),
     join(TRANSLATE_HOME, 'config.yaml'),
     dryRun,
     created,
   );
 
   await copyTemplate(
-    join(REPO_ROOT, 'plugin', 'glossary.default.yaml'),
+    join(INSTALL_ROOT, 'plugin', 'glossary.default.yaml'),
     join(TRANSLATE_HOME, 'glossary.yaml'),
     dryRun,
     created,
@@ -272,7 +278,7 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
   await installMcpWrapper(dryRun, created, updated);
 
   await copyTemplate(
-    join(REPO_ROOT, 'templates', 'cursor-translate-rules.example.md'),
+    join(INSTALL_ROOT, 'templates', 'cursor-translate-rules.example.md'),
     join(TRANSLATE_HOME, 'cursor-translate-rules.example.md'),
     dryRun,
     created,

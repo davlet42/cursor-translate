@@ -218,6 +218,9 @@ translator:
 
 - **[Runtime guide (IDE / CLI / Cloud)](./docs/runtime-guide.md)** — setup, limits, model tier, workflows
 - **[MCP setup (`translate`, `resolve_doc`)](./docs/mcp-setup.md)**
+- **[Cloud Agents playbook](./docs/cloud-agents.md)** — MCP checklist, cache warmup, IDE hooks gap
+- **[Publishing to npm](./docs/publishing.md)** — package publish order
+- **[Cursor Marketplace](./docs/marketplace.md)** — plugin submission checklist
 
 ## License
 

@@ -127,8 +127,12 @@ Or full rules in `.cursor/cursor-translate.md`.
 
 ## Cloud Agents
 
+Cloud sessions do **not** run IDE hooks. Use MCP + warmed EN cache — full checklist: **[cloud-agents.md](./cloud-agents.md)**.
+
+Quick flow:
+
 1. Ensure plugin or `mcp.json` is active on the machine / dashboard secrets as documented by Cursor for cloud MCP.
-2. Warm docs in the VM or rely on `resolve_doc` on first read.
+2. Warm docs in the VM (`cursor-translate docs`) or commit EN cache — see [cloud-agents.md](./cloud-agents.md).
 3. Agent workflow:
    - User task in Russian → call `translate` (`ru_en`) before heavy reasoning.
    - Read Cyrillic docs → call `resolve_doc` with `include_body: true` instead of raw `Read` on RU path.
@@ -149,6 +153,14 @@ Plugin rules (`mcp-translate.mdc`) encode this for IDE and Cloud when the plugin
 Requires `agent` CLI logged in for default `cursor-cli` provider. MCP and hooks pass **`--trust`** to `agent` automatically so non-interactive translate works when the MCP server cwd is outside a git repo.
 
 ## Verify
+
+From the dev repo (automated smoke):
+
+```bash
+npm run verify:mcp
+```
+
+Manual checks:
 
 ```bash
 # wrapper on PATH

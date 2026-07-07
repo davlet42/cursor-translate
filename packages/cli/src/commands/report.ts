@@ -1,9 +1,15 @@
 import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import {
+  estimateBreakEvenReads,
+  resolveBySourceKey,
+  resolveDocTranslateCostBucket,
+  resolveMetricsPathFromEnv,
+} from '../helpers/report-helpers.js';
 
 const TRANSLATE_HOME = join(homedir(), '.cursor', 'translate-proxy');
-const METRICS_PATH = join(TRANSLATE_HOME, 'metrics.jsonl');
+const DEFAULT_METRICS_PATH = join(TRANSLATE_HOME, 'metrics.jsonl');
 
 const REALIZED_SOURCES = new Set(['doc_cache_served', 'prompt_translated']);
 const COST_SOURCES = new Set(['doc_translate_cost', 'prompt_translated', 'response_back_translated']);
@@ -68,7 +74,7 @@ export interface ReportResult {
   metricsPath: string;
 }
 
-function emptyReportResult(days: number): ReportResult {
+function emptyReportResult(days: number, metricsPath: string): ReportResult {
   return {
     days,
     totalEvents: 0,
@@ -87,7 +93,7 @@ function emptyReportResult(days: number): ReportResult {
     operationalSavingsTokensEst: 0,
     operationalTranslateCostTokensEst: 0,
     operationalNetRoiTokensEst: 0,
-    metricsPath: METRICS_PATH,
+    metricsPath,
   };
 }
 
@@ -107,31 +113,16 @@ function normalizeSource(entry: MetricsEntry): string {
   return 'user_prompt';
 }
 
-function resolveDocTranslateCostBucket(entry: MetricsEntry): 'warmup' | 'incremental' {
-  if (entry.reason === 'warmup_translate') {
-    return 'warmup';
-  }
-  return 'incremental';
-}
-
-function resolveBySourceKey(entry: MetricsEntry, source: string): string {
-  if (source === 'doc_translate_cost') {
-    return entry.reason === 'warmup_translate'
-      ? 'doc_translate_cost (warmup)'
-      : 'doc_translate_cost (incremental)';
-  }
-  return source;
-}
-
 export async function runReport(args: string[]): Promise<ReportResult> {
   const days = parseDays(args);
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const metricsPath = resolveMetricsPathFromEnv(DEFAULT_METRICS_PATH);
 
   let raw = '';
   try {
-    raw = await readFile(METRICS_PATH, 'utf8');
+    raw = await readFile(metricsPath, 'utf8');
   } catch {
-    return emptyReportResult(days);
+    return emptyReportResult(days, metricsPath);
   }
 
   const bySource: Record<
@@ -257,7 +248,7 @@ export async function runReport(args: string[]): Promise<ReportResult> {
     operationalSavingsTokensEst,
     operationalTranslateCostTokensEst,
     operationalNetRoiTokensEst,
-    metricsPath: METRICS_PATH,
+    metricsPath,
   };
 }
 
@@ -280,20 +271,6 @@ function formatSignedTokens(value: number): string {
     return `+${value}`;
   }
   return String(value);
-}
-
-function estimateBreakEvenReads(warmupCostTokens: number, docSavings: number, reads: number): number | null {
-  if (warmupCostTokens <= 0) {
-    return null;
-  }
-  if (reads <= 0 || docSavings <= 0) {
-    return null;
-  }
-  const avgSavingsPerRead = docSavings / reads;
-  if (avgSavingsPerRead <= 0) {
-    return null;
-  }
-  return Math.ceil(warmupCostTokens / avgSavingsPerRead);
 }
 
 export function formatReport(result: ReportResult): string {

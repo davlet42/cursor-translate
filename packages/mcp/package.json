@@ -4,6 +4,11 @@
   "description": "MCP server — translate tool for Cursor agents (Cloud + IDE)",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davlet42/cursor-translate.git",
+    "directory": "packages/mcp"
+  },
   "bin": {
     "cursor-translate-mcp": "./dist/server.js"
   },

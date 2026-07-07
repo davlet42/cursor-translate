@@ -4,17 +4,25 @@
   "description": "Core library: detect, segment, glossary, cache, translate",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davlet42/cursor-translate.git",
+    "directory": "packages/core"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./helpers/resolve-install-root": {
+      "import": "./dist/helpers/resolve-install-root.js"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js 2>/dev/null || echo 'no tests yet'"
+    "test": "echo 'run npm test from repo root'"
   },
   "devDependencies": {
     "typescript": "^5.7.0"
