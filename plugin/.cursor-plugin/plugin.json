@@ -10,6 +10,7 @@
   "homepage": "https://github.com/davlet42/cursor-translate",
   "repository": "https://github.com/davlet42/cursor-translate",
   "license": "MIT",
+  "logo": "assets/logo.svg",
   "keywords": [
     "translation",
     "cyrillic",

@@ -54,6 +54,7 @@ cursor-translate docs   # warm cache in your repo
 - [x] MCP via `npx @cursor-translate/mcp` (no secrets in repo)
 - [x] `npm run test` / `npm run verify:mcp`
 - [ ] Screenshot: Cursor Settings → MCP showing `translate` + `resolve_doc` (optional, attach to form if allowed)
+- [x] Logo: `plugin/assets/logo.svg` → `https://raw.githubusercontent.com/davlet42/cursor-translate/main/plugin/assets/logo.svg`
 - [ ] Submit at marketplace/publish → wait for manual review
 
 ---
