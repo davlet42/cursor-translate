@@ -105,15 +105,64 @@ ln -sf "$(npm root -g)/cursor-translate/plugin" ~/.cursor/plugins/local/cursor-t
 
 On every push/PR to `main`: `npm test` (`.github/workflows/ci.yml`).
 
-On tag `v*`: publish core → mcp → cli (`.github/workflows/publish.yml`).
+On tag `v*`: publish core → mcp → cli (`.github/workflows/publish.yml`). Manual retry: Actions → **Publish npm** → **Run workflow** (`workflow_dispatch`).
 
-Add repository secret **`NPM_TOKEN`** — npm access token with publish rights for `@cursor-translate/*` and `cursor-translate`. Create at [npmjs.com/settings/~/tokens](https://www.npmjs.com/settings/~/tokens) (type: **Automation** or **Publish**).
+Add repository secret **`NPM_TOKEN`** in GitHub → Settings → Secrets → Actions.
 
-```bash
-git tag v0.1.1 && git push origin v0.1.1   # triggers publish workflow
+### NPM_TOKEN — scoped vs unscoped (important)
+
+Three packages, **two namespaces** on npm:
+
+| Package | Namespace | Covered by scope `@cursor-translate`? |
+|---|---|---|
+| `@cursor-translate/core` | scoped | ✅ yes |
+| `@cursor-translate/mcp` | scoped | ✅ yes |
+| `cursor-translate` | **unscoped** (no `@`) | ❌ **no** |
+
+Org `cursor-translate` on npm also **does not** grant publish to unscoped `cursor-translate` — that package lives under your user account (`davlet42`).
+
+**Granular Access Token** must include **both**:
+
+1. Scope **`@cursor-translate`** — Read and write  
+2. Package **`cursor-translate`** — Read and write (add explicitly under Packages, not only the scope)
+
+Without (2), CI publishes core + mcp successfully but CLI fails with:
+
+```text
+403 Forbidden - PUT https://registry.npmjs.org/cursor-translate
+You may not perform that action with these credentials.
 ```
 
-Bump `version` in all three `package.json` files before tagging.
+**Classic token** alternative: type **Automation**, publish access — covers all packages on the account (simpler, broader).
+
+Create tokens at [npmjs.com/settings/~/tokens](https://www.npmjs.com/settings/~/tokens). Enable **Bypass 2FA** for CI tokens.
+
+After creating or editing the token, paste it into GitHub secret `NPM_TOKEN` (name must match exactly).
+
+### Trigger publish
+
+```bash
+# bump version in packages/*/package.json first
+git tag v0.1.x && git push origin v0.1.x
+```
+
+If core/mcp for that version are already on npm, either publish CLI manually:
+
+```bash
+npm publish -w cursor-translate --access public
+```
+
+or bump to the next patch and tag again.
+
+### GitHub Release
+
+Publishing to npm does **not** create a GitHub Release. After a successful publish:
+
+```bash
+gh release create v0.1.x --title "v0.1.x" --notes "…"
+```
+
+Mark the new release **Latest** in GitHub UI if an older tag still shows as default.
 
 ---
 
