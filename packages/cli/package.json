@@ -6,7 +6,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/davlet42/cursor-translate.git",
+    "url": "git+https://github.com/davlet42/cursor-translate.git",
     "directory": "packages/cli"
   },
   "bin": {
@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build && bash ../../scripts/prepare-publish.sh",
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {

@@ -6,15 +6,19 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/davlet42/cursor-translate.git",
+    "url": "git+https://github.com/davlet42/cursor-translate.git",
     "directory": "packages/mcp"
   },
+  "files": [
+    "dist"
+  ],
   "bin": {
     "cursor-translate-mcp": "./dist/server.js"
   },
   "main": "./dist/server.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
     "dev": "tsc -p tsconfig.json --watch",
     "start": "node dist/server.js"
   },

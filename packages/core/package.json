@@ -6,9 +6,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/davlet42/cursor-translate.git",
+    "url": "git+https://github.com/davlet42/cursor-translate.git",
     "directory": "packages/core"
   },
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -22,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
     "test": "echo 'run npm test from repo root'"
   },
   "devDependencies": {

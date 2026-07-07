@@ -15,9 +15,24 @@ The git repo root stays `"private": true` for workspace development.
 ## Prerequisites
 
 - npm account with 2FA
-- `npm login`
+- Log in on this machine:
+
+  ```bash
+  npm login
+  npm whoami   # should print your npm username
+  ```
+
+- **Scoped packages** (`@cursor-translate/*`) need `--access public` on first publish, and you must own the `@cursor-translate` org on npm (create it at [npmjs.com](https://www.npmjs.com/org/create) if needed).
 - `agent` CLI **not** required to publish — only for runtime translate
 - Clean `npm run build` and `npm test`
+
+### Packaging note
+
+`dist/` is gitignored. Each publishable package whitelists only `dist/` (and CLI also `plugin/` + `templates/`). `prepack` runs `build` automatically before `npm publish`. Always dry-run and confirm the tarball lists `dist/*.js`, not `src/*.ts`:
+
+```bash
+npm publish -w @cursor-translate/core --access public --dry-run 2>&1 | grep -E 'dist/|src/'
+```
 
 ---
 
