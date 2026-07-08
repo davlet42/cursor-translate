@@ -1,5 +1,6 @@
 node_modules/
 dist/
+plugin/plugin
 packages/cli/plugin/
 packages/cli/templates/
 *.log
