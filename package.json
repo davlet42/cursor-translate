@@ -12,7 +12,7 @@
     "cursor-translate-mcp": "./packages/mcp/dist/server.js"
   },
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build -w @cursor-translate/core && npm run build -w cursor-translate -w @cursor-translate/mcp",
     "cursor-translate": "node packages/cli/dist/cli.js",
     "lint": "eslint packages --ext .ts",
     "test": "npm run build && node --test test/*.test.mjs",
