@@ -1,5 +1,6 @@
 import { countCyrillicRatio } from '../detect/count-cyrillic-ratio.js';
 import { estimateTokenSavings } from './estimate-token-savings.js';
+import { estimateTranscriptEnSavings } from './estimate-transcript-en-savings.js';
 import { appendMetricsEntry } from './append-metrics-entry.js';
 
 export interface PromptTranslateMetricsInput {
@@ -33,11 +34,20 @@ export async function logPromptTranslateMetrics(input: PromptTranslateMetricsInp
     0,
     0,
   );
-  const enTokensEst = estimateEnTokens(input.translatedText.length);
+  const enTokensEst =
+    input.direction === 'en_ru' && !input.skipped
+      ? estimateTranscriptEnSavings(input.originalText.length).enTokensEst
+      : estimateEnTokens(input.translatedText.length);
   const savedTokensEst =
     input.direction === 'ru_en' && !input.skipped
       ? Math.max(0, ruSide.ruTokensEst - enTokensEst)
-      : 0;
+      : input.direction === 'en_ru' && !input.skipped
+        ? estimateTranscriptEnSavings(input.originalText.length).savedTokensEst
+        : 0;
+  const ruTokensEst =
+    input.direction === 'en_ru' && !input.skipped
+      ? estimateTranscriptEnSavings(input.originalText.length).ruTokensEst
+      : ruSide.ruTokensEst;
   const translateCost =
     input.skipped || input.translatedText === input.originalText
       ? 0
@@ -53,7 +63,7 @@ export async function logPromptTranslateMetrics(input: PromptTranslateMetricsInp
     project_slug: input.projectSlug,
     translate_model: input.translateModel,
     used_fallback: input.usedFallback,
-    ru_tokens_est: ruSide.ruTokensEst,
+    ru_tokens_est: ruTokensEst,
     en_tokens_est: enTokensEst,
     saved_tokens_est: savedTokensEst,
     translate_cost_tokens_est: translateCost,

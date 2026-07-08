@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.7 (2026-07-08)
+
+- **Full economy report**: new `ROI full economy` section counts display/MessageDisplay transcript EN savings (`response_back_translated`), not just doc cache + CLI prompts.
+- **Display metrics**: `backTranslateResponse` now logs `saved_tokens_est` for EN-in-transcript savings (english_replies / display path).
+- **Session opportunity** split: `user_prompt` vs other audits; notes clarify terminal `claude` (plugin hooks) vs `*-translate agent` (realized `prompt_translated`).
+- **Break-even**: incremental doc spend break-even reads in addition to warmup.
+- Shared aggregation in `@cursor-translate/core` (`aggregateTranslateReport`, `formatTranslateReport`).
+
 ## 0.2.6 (2026-07-08)
 
 - **Quota latch TTL**: `doc-translate-quota.json` auto-expires after 30 minutes (`CURSOR_TRANSLATE_QUOTA_TTL_MIN` / `CLAUDE_TRANSLATE_QUOTA_TTL_MIN` to override) instead of blocking prompt/display translation until a successful doc translate. Malformed timestamps clear the latch.

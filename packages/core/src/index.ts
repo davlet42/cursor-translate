@@ -18,6 +18,22 @@ export {
 } from './cache/sibling-cache.js';
 export { findMarkdownFilesWithCyrillic } from './discover/find-markdown-files-with-cyrillic.js';
 export { estimateTokenSavings } from './metrics/estimate-token-savings.js';
+export { estimateTranscriptEnSavings } from './metrics/estimate-transcript-en-savings.js';
+export type { TranscriptEnSavingsEstimate } from './metrics/estimate-transcript-en-savings.js';
+export {
+  aggregateTranslateReport,
+  aggregateTranslateReportFromMissingFile,
+  resolveDocTranslateCostBucket,
+  resolveBySourceKey,
+  estimateBreakEvenReads,
+} from './metrics/aggregate-translate-report.js';
+export type {
+  TranslateReportResult,
+  TranslateReportBySourceRow,
+} from './metrics/aggregate-translate-report.js';
+export type { TranslateReportMetricsEntry } from './metrics/translate-report-entry.interface.js';
+export { formatTranslateReport } from './metrics/format-translate-report.js';
+export type { FormatTranslateReportOptions } from './metrics/format-translate-report.js';
 export { appendMetricsEntry } from './metrics/append-metrics-entry.js';
 export {
   logDocCacheServed,

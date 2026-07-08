@@ -67,7 +67,8 @@ describe('runReport', () => {
 
     const formatted = formatReport(result);
     assert.match(formatted, /ROI operational/);
-    assert.match(formatted, /break-even reads/);
+    assert.match(formatted, /ROI full economy/);
+    assert.match(formatted, /break-even reads \(warmup/);
     assert.match(formatted, /doc_translate_cost \(warmup\)/);
   });
 });

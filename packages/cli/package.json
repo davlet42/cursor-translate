@@ -1,6 +1,6 @@
 {
   "name": "cursor-translate",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "CLI for cursor-translate token-saving layer",
   "license": "MIT",
   "type": "module",
@@ -23,10 +23,10 @@
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {
-    "@cursor-translate/core": "0.2.6"
+    "@cursor-translate/core": "0.2.7"
   },
   "optionalDependencies": {
-    "@cursor-translate/mcp": "0.2.6"
+    "@cursor-translate/mcp": "0.2.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
