@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.6 (2026-07-08)
+
+- **Quota latch TTL**: `doc-translate-quota.json` auto-expires after 30 minutes (`CURSOR_TRANSLATE_QUOTA_TTL_MIN` / `CLAUDE_TRANSLATE_QUOTA_TTL_MIN` to override) instead of blocking prompt/display translation until a successful doc translate. Malformed timestamps clear the latch.
+- Fixes the failure mode where the subscription window recovers but translate hops stay permanently `quota_blocked`.
+
 ## 0.2.5 (2026-07-08)
 
 - **Fix section cache flat file**: section-level `doc` translate now always writes the flat `*.en.md` atomically before the `*.en.sections.json` sidecar; verifies the flat file after write.
