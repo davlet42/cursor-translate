@@ -20,6 +20,6 @@
     "prepare:publish": "bash scripts/prepare-publish.sh"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   }
 }
