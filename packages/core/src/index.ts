@@ -70,6 +70,7 @@ export { formatLazyDeferredHint } from './cache/format-lazy-deferred-hint.js';
 export { resolveCliBrand } from './config/resolve-cli-brand.js';
 export { countMarkdownTranslateChunks } from './translate/count-markdown-translate-chunks.js';
 export { translateMarkdownWithProvider } from './translate/translate-markdown-with-provider.js';
+export { repairFlatCacheFromSections, writeFlatDocCacheAtomic, flatCacheMatchesSha } from './cache/repair-flat-cache-from-sections.js';
 export { appendCursorAgentTrustArgs } from './agent/append-cursor-agent-trust-args.js';
 export { resolveProjectRoot } from './project/resolve-project-root.js';
 export { resolveInstallRoot } from './helpers/resolve-install-root.js';

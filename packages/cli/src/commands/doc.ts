@@ -36,5 +36,20 @@ export async function runDoc(args: string[]): Promise<void> {
     return;
   }
 
+  if (result.skipped && result.reason === 'sibling_copy') {
+    console.log('  status: sibling_copy');
+    return;
+  }
+
+  if (result.skipped && result.reason === 'quota_exhausted') {
+    console.log('  status: quota_exhausted');
+    return;
+  }
+
+  if (result.skipped) {
+    console.log(`  status: skipped (${result.reason})`);
+    return;
+  }
+
   console.log('  status: translated');
 }

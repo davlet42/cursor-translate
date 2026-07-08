@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { sha256Hex } from '../hash/sha256-hex.js';
 import { resolveProjectSlug } from '../project/resolve-project-slug.js';
 import { resolveProjectRoot } from '../project/resolve-project-root.js';
@@ -23,6 +23,11 @@ import {
   readSectionSidecar,
   writeSectionSidecar,
 } from './section-doc-cache.js';
+import {
+  flatCacheMatchesSha,
+  repairFlatCacheFromSections,
+  writeFlatDocCacheAtomic,
+} from './repair-flat-cache-from-sections.js';
 import { translateMarkdownWithProvider } from '../translate/translate-markdown-with-provider.js';
 
 export type { TranslateProvider } from '../translate/translate-provider.js';
@@ -116,6 +121,7 @@ async function translateIncrementalSections(
   },
 ): Promise<{
   translatedBody: string;
+  sectionEntries: Record<string, string>;
   translateModel: string;
   usedFallback: boolean;
   translateCostUsd?: number;
@@ -166,13 +172,10 @@ async function translateIncrementalSections(
   }
 
   const translatedBody = assembleSectionTranslatedBody(sections, translatedByKey);
-  await writeSectionSidecar(
-    cachePath,
-    Object.fromEntries(translatedByKey.entries()),
-  );
 
   return {
     translatedBody,
+    sectionEntries: Object.fromEntries(translatedByKey.entries()),
     translateModel,
     usedFallback,
     translateCostUsd,
@@ -207,6 +210,33 @@ export async function translateDocToGlobalCache(
       reason: 'up_to_date',
       sourceSha256,
     };
+  }
+
+  if (
+    !options.force &&
+    config.cacheIncremental === 'section' &&
+    !(await flatCacheMatchesSha(cachePath, sourceSha256))
+  ) {
+    const repaired = await repairFlatCacheFromSections(cachePath, sourceRaw, {
+      cursorTranslateVersion: 2,
+      sourcePath,
+      sourceSha256,
+      generatedAt: new Date().toISOString(),
+      projectSlug,
+      incremental: 'section',
+    });
+    if (repaired) {
+      return {
+        sourcePath,
+        cachePath,
+        projectSlug,
+        provider,
+        translateModel: model,
+        skipped: true,
+        reason: 'up_to_date',
+        sourceSha256,
+      };
+    }
   }
 
   if (options.dryRun) {
@@ -264,6 +294,9 @@ export async function translateDocToGlobalCache(
   const translation = useIncremental
     ? await translateIncrementalSections(sourceRaw, cachePath, translateOptions)
     : await translateFullDocument(sourceRaw, translateOptions);
+  const sectionEntries = useIncremental
+    ? (translation as Awaited<ReturnType<typeof translateIncrementalSections>>).sectionEntries
+    : undefined;
 
   if (translation.quotaExhausted) {
     await markDocTranslateQuotaExhausted(`${provider} quota exhausted for doc translation`);
@@ -291,8 +324,16 @@ export async function translateDocToGlobalCache(
     incremental: useIncremental ? 'section' : undefined,
   };
 
-  await mkdir(dirname(cachePath), { recursive: true });
-  await writeFile(cachePath, formatDocCache(meta, translation.translatedBody), 'utf8');
+  const flatContent = formatDocCache(meta, translation.translatedBody);
+  await writeFlatDocCacheAtomic(cachePath, flatContent);
+
+  if (sectionEntries) {
+    await writeSectionSidecar(cachePath, sectionEntries);
+  }
+
+  if (!(await flatCacheMatchesSha(cachePath, sourceSha256))) {
+    throw new Error(`Failed to write doc cache file: ${cachePath}`);
+  }
 
   if (!options.skipMetrics) {
     await logDocTranslateCost({
