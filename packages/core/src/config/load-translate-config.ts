@@ -7,6 +7,10 @@ import {
   DEFAULT_TRANSLATE_MODEL,
   DEFAULT_TRANSLATE_PROVIDER,
 } from '../constants/default-translate-model.constant.js';
+import {
+  DEFAULT_LAZY_READ_MAX_CHARS,
+  DEFAULT_LAZY_READ_MAX_CHUNKS,
+} from '../constants/default-lazy-read-limits.constant.js';
 import { resolveTranslateHome } from './resolve-translate-home.js';
 import {
   parseTranslateProvider,
@@ -25,6 +29,10 @@ export interface LoadedTranslateConfig {
   promptTranslateEnabled: boolean;
   responseBackTranslate: boolean;
   shareSiblingCaches: boolean;
+  lazyReadMaxChars: number;
+  lazyReadMaxChunks: number;
+  lazyReadHints: boolean;
+  cacheIncremental: 'off' | 'section';
 }
 
 const DEFAULTS: LoadedTranslateConfig = {
@@ -37,6 +45,10 @@ const DEFAULTS: LoadedTranslateConfig = {
   promptTranslateEnabled: true,
   responseBackTranslate: true,
   shareSiblingCaches: true,
+  lazyReadMaxChars: DEFAULT_LAZY_READ_MAX_CHARS,
+  lazyReadMaxChunks: DEFAULT_LAZY_READ_MAX_CHUNKS,
+  lazyReadHints: true,
+  cacheIncremental: 'section',
 };
 
 function parseYamlScalar(block: string, key: string): string | null {
@@ -153,6 +165,21 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     parseNestedScalar(raw, 'cache', 'share_siblings'),
     DEFAULTS.shareSiblingCaches,
   );
+  const lazyReadMaxChars = parseNumber(
+    parseNestedScalar(raw, 'cache', 'lazy_read_max_chars'),
+    DEFAULTS.lazyReadMaxChars,
+  );
+  const lazyReadMaxChunks = parseNumber(
+    parseNestedScalar(raw, 'cache', 'lazy_read_max_chunks'),
+    DEFAULTS.lazyReadMaxChunks,
+  );
+  const lazyReadHints = parseBoolean(
+    parseNestedScalar(raw, 'cache', 'lazy_read_hints'),
+    DEFAULTS.lazyReadHints,
+  );
+  const incrementalRaw = parseNestedScalar(raw, 'cache', 'incremental');
+  const cacheIncremental =
+    incrementalRaw === 'off' ? 'off' : incrementalRaw === 'section' ? 'section' : DEFAULTS.cacheIncremental;
 
   return {
     enabled,
@@ -164,5 +191,9 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     promptTranslateEnabled,
     responseBackTranslate,
     shareSiblingCaches,
+    lazyReadMaxChars,
+    lazyReadMaxChunks,
+    lazyReadHints,
+    cacheIncremental,
   };
 }

@@ -35,6 +35,13 @@ cache:
   # Reuse fresh entries from a sibling install (claude-translate) before
   # re-translating. Override candidates: CURSOR_TRANSLATE_SIBLING_HOMES.
   share_siblings: true
+  # Skip on-demand lazy translate for very large cold/stale docs; serve Russian
+  # and show a pre-warm hint instead. Set lazy_read_max_chars: 0 to disable.
+  lazy_read_max_chars: 50000
+  lazy_read_max_chunks: 3
+  lazy_read_hints: true
+  # Incremental doc cache: re-translate only changed ## / ### sections.
+  incremental: section
 
 glossary:
   file: ~/.cursor/translate-proxy/glossary.yaml

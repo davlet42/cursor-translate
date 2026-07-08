@@ -67,6 +67,12 @@ export async function runResolveFromHookInput(
           'cursor-translate: included API quota exhausted; reading Russian source without translation.',
       };
     }
+    if (result.action === 'lazy_deferred' && result.userHint) {
+      return {
+        permission: 'allow',
+        agent_message: result.userHint,
+      };
+    }
     return { permission: 'allow' };
   }
 

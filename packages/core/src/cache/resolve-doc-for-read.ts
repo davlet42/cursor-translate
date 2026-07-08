@@ -9,6 +9,9 @@ import { resolveGlobalCachePath } from './resolve-global-cache-path.js';
 import { parseDocCache } from './parse-doc-cache.js';
 import { logDocCacheServed } from '../metrics/log-doc-cache-metrics.js';
 import { translateDocToGlobalCache } from './translate-doc-to-global-cache.js';
+import { exceedsLazyReadLimit } from './exceeds-lazy-read-limit.js';
+import { formatLazyDeferredHint } from './format-lazy-deferred-hint.js';
+import { resolveCliBrand } from '../config/resolve-cli-brand.js';
 
 export type ResolveDocAction =
   | 'passthrough'
@@ -18,6 +21,7 @@ export type ResolveDocAction =
   | 'translated'
   | 'cache_refreshed'
   | 'quota_exhausted'
+  | 'lazy_deferred'
   | 'disabled';
 
 export interface ResolveDocForReadOptions {
@@ -28,6 +32,7 @@ export interface ResolveDocForReadOptions {
   minChars?: number;
   force?: boolean;
   skipMetrics?: boolean;
+  allowLazyTranslate?: boolean;
 }
 
 export interface ResolveDocForReadResult {
@@ -39,6 +44,7 @@ export interface ResolveDocForReadResult {
   sourceSha256: string;
   translateModel?: string;
   usedFallback?: boolean;
+  userHint?: string;
 }
 
 function isMarkdownPath(filePath: string): boolean {
@@ -146,6 +152,39 @@ export async function resolveDocForRead(
   }
 
   const cachePath = resolveGlobalCachePath(projectSlug, sourcePath, projectRoot);
+
+  const allowLazyTranslate = options.allowLazyTranslate ?? true;
+  if (
+    allowLazyTranslate &&
+    !options.force &&
+    exceedsLazyReadLimit(sourceRaw, config)
+  ) {
+    let cacheFresh = false;
+    if (!options.force) {
+      try {
+        const cached = await readFile(cachePath, 'utf8');
+        const parsed = parseDocCache(cached);
+        cacheFresh = Boolean(parsed && parsed.meta.sourceSha256 === sourceSha256);
+      } catch {
+        cacheFresh = false;
+      }
+    }
+
+    if (!cacheFresh) {
+      const userHint = config.lazyReadHints
+        ? formatLazyDeferredHint(sourcePath, sourceRaw, resolveCliBrand())
+        : undefined;
+      return {
+        sourcePath,
+        readPath: sourcePath,
+        cachePath,
+        projectSlug,
+        action: 'lazy_deferred',
+        sourceSha256,
+        userHint,
+      };
+    }
+  }
 
   if (!options.force) {
     try {
