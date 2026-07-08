@@ -10,7 +10,8 @@
     {
       "name": "cursor-translate",
       "source": "plugin",
-      "description": "Serve Cyrillic docs in English, MCP translate/resolve_doc, token metrics"
+      "description": "Serve Cyrillic docs in English, MCP translate/resolve_doc, token metrics",
+      "version": "0.2.1"
     }
   ]
 }

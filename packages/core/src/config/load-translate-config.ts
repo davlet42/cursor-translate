@@ -48,11 +48,22 @@ function parseYamlScalar(block: string, key: string): string | null {
 }
 
 function parseNestedScalar(block: string, section: string, key: string): string | null {
-  const sectionMatch = block.match(new RegExp(`^${section}:\\n([\\s\\S]*?)(?=^[a-zA-Z_]+:|$)`, 'm'));
+  // Section body = consecutive indented or blank lines after "section:".
+  // (A lazy [\s\S]*? with a multiline `$` lookahead only ever captured the
+  // section's first line, silently dropping every later key.)
+  const sectionMatch = block.match(
+    new RegExp(`^${section}:[ \\t]*\\r?\\n((?:(?:[ \\t]+[^\\n]*)?\\r?\\n)*)`, 'm'),
+  );
   if (!sectionMatch) {
     return null;
   }
-  return parseYamlScalar(sectionMatch[1], key);
+  // Section lines are indented, so the key match must tolerate leading space
+  // (parseYamlScalar anchors at line start and only fits top-level keys).
+  const match = sectionMatch[1].match(new RegExp(`^\\s*${key}:\\s*(.+)$`, 'm'));
+  if (!match) {
+    return null;
+  }
+  return match[1].trim().replace(/^['"]|['"]$/g, '');
 }
 
 function parseBoolean(value: string | null, fallback: boolean): boolean {
