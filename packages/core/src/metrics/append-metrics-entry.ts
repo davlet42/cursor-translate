@@ -10,6 +10,8 @@ export interface MetricsLogEntry {
   en_tokens_est: number;
   saved_tokens_est: number;
   translate_cost_tokens_est?: number;
+  // Actual spend from claude -p receipts (total_cost_usd), when available.
+  translate_cost_usd?: number;
   cyrillic_ratio?: number;
   text_chars?: number;
   served_chars?: number;

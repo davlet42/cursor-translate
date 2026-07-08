@@ -137,6 +137,7 @@ export async function translateDocToGlobalCache(
   let translatedBody: string;
   let translateModel = model;
   let usedFallback = false;
+  let translateCostUsd: number | undefined;
 
   if (provider === 'openai') {
     const apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
@@ -180,6 +181,7 @@ export async function translateDocToGlobalCache(
     translatedBody = result.text;
     translateModel = result.modelUsed;
     usedFallback = result.usedFallback;
+    translateCostUsd = result.costUsd;
 
     if (result.quotaExhausted) {
       await markDocTranslateQuotaExhausted('claude-cli quota exhausted for doc translation');
@@ -246,6 +248,7 @@ export async function translateDocToGlobalCache(
       translateModel,
       usedFallback,
       trigger: options.metricsTrigger ?? 'doc_cli',
+      translateCostUsd,
     });
   }
 

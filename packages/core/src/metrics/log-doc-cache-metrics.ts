@@ -24,6 +24,7 @@ export interface DocTranslateCostMetricsInput {
   translateModel: string;
   usedFallback?: boolean;
   trigger?: 'lazy_read' | 'batch_docs' | 'doc_cli';
+  translateCostUsd?: number;
 }
 
 function estimateEnTokensFromChars(charCount: number): number {
@@ -103,6 +104,7 @@ export async function logDocTranslateCost(input: DocTranslateCostMetricsInput): 
     en_tokens_est: 0,
     saved_tokens_est: 0,
     translate_cost_tokens_est: translateCost,
+    translate_cost_usd: input.translateCostUsd,
     cyrillic_ratio: Number(cyrillicRatio.toFixed(3)),
     text_chars: input.sourceRaw.length,
     served_chars: input.translatedBody.length,

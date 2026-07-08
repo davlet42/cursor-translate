@@ -114,6 +114,7 @@ export async function backTranslateResponse(
   let translatedText = originalText;
   let modelUsed: string | undefined;
   let usedFallback = false;
+  let translateCostUsd: number | undefined;
 
   if (provider === 'openai') {
     const apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
@@ -157,6 +158,7 @@ export async function backTranslateResponse(
     translatedText = result.text;
     modelUsed = result.modelUsed;
     usedFallback = result.usedFallback;
+    translateCostUsd = result.costUsd;
 
     if (result.quotaExhausted) {
       await markDocTranslateQuotaExhausted('claude-cli quota exhausted for back-translation');
@@ -205,6 +207,7 @@ export async function backTranslateResponse(
       translateModel: modelUsed,
       usedFallback,
       projectSlug,
+      translateCostUsd,
     });
   }
 

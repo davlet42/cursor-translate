@@ -22,13 +22,15 @@ export interface TranslateTextClaudeCliResult {
   modelUsed: string;
   usedFallback: boolean;
   quotaExhausted: boolean;
+  // Actual spend summed from claude -p receipts; undefined when unavailable.
+  costUsd?: number;
 }
 
 function translateChunk(
   chunk: string,
   options: TranslateTextClaudeCliOptions,
   model: string,
-): string {
+): { text: string; costUsd: number | null } {
   const glossaryBlock =
     options.glossaryTerms.length > 0
       ? `\nGlossary (do not translate):\n${options.glossaryTerms.map((t) => `- ${t}`).join('\n')}\n`
@@ -56,24 +58,31 @@ export function translateTextClaudeCli(
   const maxChunkChars = options.maxChunkChars ?? 12000;
   const chunks = splitMarkdownChunks(text, maxChunkChars);
 
-  const runWithModel = (model: string): string[] => {
+  const runWithModel = (model: string): { texts: string[]; costUsd?: number } => {
     const outputs: string[] = [];
+    let costUsd: number | undefined;
     for (const chunk of chunks) {
       const trimmed = chunk.trim();
       if (!trimmed) {
         continue;
       }
-      outputs.push(translateChunk(trimmed, options, model));
+      const result = translateChunk(trimmed, options, model);
+      outputs.push(result.text);
+      if (result.costUsd !== null) {
+        costUsd = (costUsd ?? 0) + result.costUsd;
+      }
     }
-    return outputs;
+    return { texts: outputs, costUsd };
   };
 
   try {
+    const run = runWithModel(primaryModel);
     return {
-      text: `${runWithModel(primaryModel).join('\n\n')}\n`.trimEnd(),
+      text: `${run.texts.join('\n\n')}\n`.trimEnd(),
       modelUsed: primaryModel,
       usedFallback: false,
       quotaExhausted: false,
+      costUsd: run.costUsd,
     };
   } catch (primaryError: unknown) {
     const primaryMessage =
@@ -84,11 +93,13 @@ export function translateTextClaudeCli(
     }
 
     try {
+      const run = runWithModel(fallbackModel);
       return {
-        text: `${runWithModel(fallbackModel).join('\n\n')}\n`.trimEnd(),
+        text: `${run.texts.join('\n\n')}\n`.trimEnd(),
         modelUsed: fallbackModel,
         usedFallback: true,
         quotaExhausted: false,
+        costUsd: run.costUsd,
       };
     } catch (fallbackError: unknown) {
       const fallbackMessage =

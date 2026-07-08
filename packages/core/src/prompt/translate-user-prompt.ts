@@ -129,6 +129,7 @@ export async function translateUserPrompt(
   let translatedText = originalText;
   let modelUsed: string | undefined;
   let usedFallback = false;
+  let translateCostUsd: number | undefined;
 
   if (provider === 'openai') {
     const apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
@@ -172,6 +173,7 @@ export async function translateUserPrompt(
     translatedText = result.text;
     modelUsed = result.modelUsed;
     usedFallback = result.usedFallback;
+    translateCostUsd = result.costUsd;
 
     if (result.quotaExhausted) {
       await markDocTranslateQuotaExhausted('claude-cli quota exhausted for prompt translation');
@@ -223,6 +225,7 @@ export async function translateUserPrompt(
       translateModel: modelUsed,
       usedFallback,
       projectSlug,
+      translateCostUsd,
     });
   }
 

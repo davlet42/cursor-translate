@@ -11,6 +11,7 @@ export interface PromptTranslateMetricsInput {
   translateModel?: string;
   usedFallback?: boolean;
   projectSlug?: string;
+  translateCostUsd?: number;
 }
 
 function estimateTranslateCost(originalText: string, translatedText: string): number {
@@ -56,6 +57,7 @@ export async function logPromptTranslateMetrics(input: PromptTranslateMetricsInp
     en_tokens_est: enTokensEst,
     saved_tokens_est: savedTokensEst,
     translate_cost_tokens_est: translateCost,
+    translate_cost_usd: input.translateCostUsd,
     cyrillic_ratio: Number(cyrillicRatio.toFixed(3)),
     text_chars: input.originalText.length,
     served_chars: input.translatedText.length,

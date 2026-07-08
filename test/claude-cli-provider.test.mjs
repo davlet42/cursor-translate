@@ -16,6 +16,9 @@ describe('buildClaudePrintArgs', () => {
     assert.ok(toolsIdx >= 0);
     assert.equal(args[toolsIdx + 1], '', 'all tools must be disabled');
 
+    const formatIdx = args.indexOf('--output-format');
+    assert.equal(args[formatIdx + 1], 'json', 'JSON output carries total_cost_usd for metrics');
+
     const modelIdx = args.indexOf('--model');
     assert.equal(args[modelIdx + 1], 'claude-haiku-4-5');
 
