@@ -1,7 +1,7 @@
 {
   "name": "cursor-translate",
   "displayName": "cursor-translate",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Save tokens on Cyrillic text: lazy EN doc cache (IDE hooks), MCP translate/resolve_doc (Cloud + IDE), metrics",
   "author": {
     "name": "davlet42"
