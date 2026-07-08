@@ -155,6 +155,12 @@ cursor-translate doc ROADMAP.md --force
 
 Optional project glossary: `.cursor/cursor-translate-glossary.yaml`
 
+### Shared cache with claude-translate
+
+Before translating (cache miss or stale), the doc cache first looks for a **fresh entry in a sibling install** — [claude-translate](https://github.com/davlet42/claude-translate) keeps the same cache format under `~/.claude/translate-proxy`. On a sha match the entry is copied over (`action: sibling_copy`, zero translate spend); only when the sibling is missing or stale does a real translation run. Works in both directions.
+
+Config: `cache.share_siblings: true` (default). Override candidates or disable: `CURSOR_TRANSLATE_SIBLING_HOMES="/path/one:/path/two"` (empty string disables).
+
 ### Phase 2 prompt flow (CLI)
 
 ```bash

@@ -1,6 +1,6 @@
 {
   "name": "@cursor-translate/mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "MCP server — translate tool for Cursor agents (Cloud + IDE)",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@cursor-translate/core": "0.1.1",
+    "@cursor-translate/core": "0.2.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.24.0"
   },

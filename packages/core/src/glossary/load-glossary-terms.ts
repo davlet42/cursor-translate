@@ -34,7 +34,10 @@ function parseSimpleYamlList(block: string, key: string): string[] {
 export async function loadGlossaryTerms(projectRoot?: string): Promise<string[]> {
   const paths = [join(resolveTranslateHome(), 'glossary.yaml')];
   if (projectRoot) {
-    paths.push(join(projectRoot, '.cursor', 'cursor-translate-glossary.yaml'));
+    paths.push(
+      join(projectRoot, '.cursor', 'cursor-translate-glossary.yaml'),
+      join(projectRoot, '.claude', 'claude-translate-glossary.yaml'),
+    );
   }
 
   const terms = new Set<string>();

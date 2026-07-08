@@ -21,12 +21,7 @@ export async function runAgent(args: string[]): Promise<void> {
   const projectSlug = projectIdx >= 0 ? tailArgs[projectIdx + 1] : undefined;
 
   const promptParts = tailArgs.filter(
-    (a, i) =>
-      !a.startsWith('--') &&
-      i !== projectIdx + 1 &&
-      a !== '--json' &&
-      a !== '--force' &&
-      a !== '--no-back-translate',
+    (a, i) => !a.startsWith('--') && (projectIdx < 0 || i !== projectIdx + 1),
   );
   const prompt = promptParts.join(' ').trim();
 

@@ -9,11 +9,13 @@ import {
 } from '../quota/doc-translate-quota-state.js';
 import { buildPromptTranslateSystemPrompt } from '../translate/build-prompt-translate-system-prompt.js';
 import { translateTextCursorCli } from '../translate/translate-text-cursor-cli.js';
+import { translateTextClaudeCli } from '../translate/translate-text-claude-cli.js';
 import { translateTextOpenAi } from '../translate/translate-text-openai.js';
 import { logPromptTranslateMetrics } from '../metrics/log-prompt-translate-metrics.js';
 import { resolveProjectSlug } from '../project/resolve-project-slug.js';
 import { resolveProjectRoot } from '../project/resolve-project-root.js';
-import type { TranslateProvider } from '../cache/translate-doc-to-global-cache.js';
+import { resolveProviderFromEnv } from '../translate/translate-provider.js';
+import type { TranslateProvider } from '../translate/translate-provider.js';
 
 export interface TranslateUserPromptOptions {
   text: string;
@@ -42,14 +44,7 @@ function resolveProvider(
   explicit: TranslateProvider | undefined,
   fromConfig: TranslateProvider,
 ): TranslateProvider {
-  const fromEnv = process.env.CURSOR_TRANSLATE_PROVIDER;
-  if (explicit) {
-    return explicit;
-  }
-  if (fromEnv === 'openai' || fromEnv === 'cursor-cli') {
-    return fromEnv;
-  }
-  return fromConfig;
+  return explicit ?? resolveProviderFromEnv() ?? fromConfig;
 }
 
 export async function translateUserPrompt(
@@ -156,6 +151,30 @@ export async function translateUserPrompt(
 
     if (result.quotaExhausted) {
       await markDocTranslateQuotaExhausted('openai quota exhausted for prompt translation');
+      return {
+        ...baseResult,
+        text: originalText,
+        skipped: true,
+        reason: 'quota_exhausted',
+        modelUsed,
+        usedFallback,
+      };
+    }
+  } else if (provider === 'claude-cli') {
+    const result = translateTextClaudeCli(originalText, {
+      model: config.model,
+      fallbackModel: config.docFallbackModel,
+      glossaryTerms,
+      systemPrompt,
+      contentLabel: 'User prompt',
+      allowFallback: true,
+    });
+    translatedText = result.text;
+    modelUsed = result.modelUsed;
+    usedFallback = result.usedFallback;
+
+    if (result.quotaExhausted) {
+      await markDocTranslateQuotaExhausted('claude-cli quota exhausted for prompt translation');
       return {
         ...baseResult,
         text: originalText,

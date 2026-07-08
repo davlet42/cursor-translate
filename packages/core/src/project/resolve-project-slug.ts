@@ -6,6 +6,7 @@ function trySlugFromGit(directory: string): string | null {
     const root = execSync('git rev-parse --show-toplevel', {
       cwd: directory,
       encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
     return basename(root);
   } catch {

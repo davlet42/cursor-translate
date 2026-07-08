@@ -14,6 +14,7 @@ export type ResolveDocAction =
   | 'passthrough'
   | 'skipped_no_cyrillic'
   | 'cache_hit'
+  | 'sibling_copy'
   | 'translated'
   | 'cache_refreshed'
   | 'quota_exhausted'
@@ -76,6 +77,7 @@ async function maybeLogServed(
 
   if (
     input.action !== 'cache_hit' &&
+    input.action !== 'sibling_copy' &&
     input.action !== 'translated' &&
     input.action !== 'cache_refreshed'
   ) {
@@ -211,6 +213,20 @@ export async function resolveDocForRead(
       cachePath,
       projectSlug,
       action: 'cache_hit',
+      sourceSha256,
+      translateModel: translateResult.translateModel,
+    };
+    await maybeLogServed(result, sourceRaw, options.skipMetrics);
+    return result;
+  }
+
+  if (translateResult.skipped && translateResult.reason === 'sibling_copy') {
+    const result: ResolveDocForReadResult = {
+      sourcePath,
+      readPath: cachePath,
+      cachePath,
+      projectSlug,
+      action: 'sibling_copy',
       sourceSha256,
       translateModel: translateResult.translateModel,
     };

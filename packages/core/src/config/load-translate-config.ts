@@ -1,12 +1,19 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
+  DEFAULT_CLAUDE_DOC_FALLBACK_MODEL,
+  DEFAULT_CLAUDE_TRANSLATE_MODEL,
   DEFAULT_DOC_FALLBACK_MODEL,
   DEFAULT_TRANSLATE_MODEL,
   DEFAULT_TRANSLATE_PROVIDER,
 } from '../constants/default-translate-model.constant.js';
 import { resolveTranslateHome } from './resolve-translate-home.js';
-import type { TranslateProvider } from '../cache/translate-doc-to-global-cache.js';
+import {
+  parseTranslateProvider,
+  resolveDefaultProviderFromEnv,
+  resolveProviderFromEnv,
+} from '../translate/translate-provider.js';
+import type { TranslateProvider } from '../translate/translate-provider.js';
 
 export interface LoadedTranslateConfig {
   enabled: boolean;
@@ -17,6 +24,7 @@ export interface LoadedTranslateConfig {
   docFallbackModel: string;
   promptTranslateEnabled: boolean;
   responseBackTranslate: boolean;
+  shareSiblingCaches: boolean;
 }
 
 const DEFAULTS: LoadedTranslateConfig = {
@@ -28,6 +36,7 @@ const DEFAULTS: LoadedTranslateConfig = {
   docFallbackModel: DEFAULT_DOC_FALLBACK_MODEL,
   promptTranslateEnabled: true,
   responseBackTranslate: true,
+  shareSiblingCaches: true,
 };
 
 function parseYamlScalar(block: string, key: string): string | null {
@@ -68,10 +77,26 @@ function parseNumber(value: string | null, fallback: number): number {
 }
 
 function resolveProvider(value: string | null): TranslateProvider {
-  if (value === 'openai' || value === 'cursor-cli') {
-    return value;
+  return (
+    resolveProviderFromEnv() ??
+    parseTranslateProvider(value) ??
+    resolveDefaultProviderFromEnv() ??
+    DEFAULTS.provider
+  );
+}
+
+function defaultModelForProvider(provider: TranslateProvider): string {
+  if (provider === 'claude-cli') {
+    return process.env.CLAUDE_TRANSLATE_MODEL ?? DEFAULT_CLAUDE_TRANSLATE_MODEL;
   }
-  return DEFAULTS.provider;
+  return process.env.CURSOR_TRANSLATE_MODEL ?? DEFAULTS.model;
+}
+
+function defaultDocFallbackForProvider(provider: TranslateProvider): string {
+  if (provider === 'claude-cli') {
+    return process.env.CLAUDE_TRANSLATE_DOC_FALLBACK_MODEL ?? DEFAULT_CLAUDE_DOC_FALLBACK_MODEL;
+  }
+  return process.env.CURSOR_TRANSLATE_DOC_FALLBACK_MODEL ?? DEFAULTS.docFallbackModel;
 }
 
 export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
@@ -81,7 +106,13 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
   try {
     raw = await readFile(configPath, 'utf8');
   } catch {
-    return { ...DEFAULTS };
+    const provider = resolveProvider(null);
+    return {
+      ...DEFAULTS,
+      provider,
+      model: defaultModelForProvider(provider),
+      docFallbackModel: defaultDocFallbackForProvider(provider),
+    };
   }
 
   const enabled = parseBoolean(parseYamlScalar(raw, 'enabled'), DEFAULTS.enabled);
@@ -95,13 +126,10 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
   );
   const provider = resolveProvider(parseNestedScalar(raw, 'translator', 'provider'));
   const model =
-    parseNestedScalar(raw, 'translator', 'model') ??
-    process.env.CURSOR_TRANSLATE_MODEL ??
-    DEFAULTS.model;
+    parseNestedScalar(raw, 'translator', 'model') ?? defaultModelForProvider(provider);
   const docFallbackModel =
     parseNestedScalar(raw, 'translator', 'doc_fallback_model') ??
-    process.env.CURSOR_TRANSLATE_DOC_FALLBACK_MODEL ??
-    DEFAULTS.docFallbackModel;
+    defaultDocFallbackForProvider(provider);
   const promptTranslateEnabled = parseBoolean(
     parseNestedScalar(raw, 'response', 'prompt_translate'),
     DEFAULTS.promptTranslateEnabled,
@@ -109,6 +137,10 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
   const responseBackTranslate = parseBoolean(
     parseNestedScalar(raw, 'response', 'back_translate'),
     DEFAULTS.responseBackTranslate,
+  );
+  const shareSiblingCaches = parseBoolean(
+    parseNestedScalar(raw, 'cache', 'share_siblings'),
+    DEFAULTS.shareSiblingCaches,
   );
 
   return {
@@ -120,5 +152,6 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     docFallbackModel,
     promptTranslateEnabled,
     responseBackTranslate,
+    shareSiblingCaches,
   };
 }

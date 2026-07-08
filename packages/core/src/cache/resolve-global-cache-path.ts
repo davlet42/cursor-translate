@@ -9,7 +9,8 @@ function toCacheRelativePath(sourceRelativePath: string): string {
   return `${sourceRelativePath.slice(0, dot)}.en${sourceRelativePath.slice(dot)}`;
 }
 
-export function resolveGlobalCachePath(
+export function resolveCachePathUnderHome(
+  translateHome: string,
   projectSlug: string,
   sourceFilePath: string,
   projectRoot?: string,
@@ -21,5 +22,13 @@ export function resolveGlobalCachePath(
 
   const cacheRelative = toCacheRelativePath(sourceRelative);
 
-  return join(resolveTranslateHome(), 'cache', projectSlug, cacheRelative);
+  return join(translateHome, 'cache', projectSlug, cacheRelative);
+}
+
+export function resolveGlobalCachePath(
+  projectSlug: string,
+  sourceFilePath: string,
+  projectRoot?: string,
+): string {
+  return resolveCachePathUnderHome(resolveTranslateHome(), projectSlug, sourceFilePath, projectRoot);
 }

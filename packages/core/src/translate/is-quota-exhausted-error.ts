@@ -8,6 +8,7 @@ const QUOTA_PATTERNS = [
   /included\s*api\s*usage/i,
   /billing/i,
   /spend\s*limit/i,
+  /limit\s*reached/i,
 ];
 
 export function isQuotaExhaustedError(message: string): boolean {

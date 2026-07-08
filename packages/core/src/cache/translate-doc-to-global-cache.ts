@@ -6,6 +6,9 @@ import { resolveProjectRoot } from '../project/resolve-project-root.js';
 import { loadGlossaryTerms } from '../glossary/load-glossary-terms.js';
 import { translateMarkdownOpenAi } from '../translate/translate-markdown-openai.js';
 import { translateMarkdownCursorCli } from '../translate/translate-markdown-cursor-cli.js';
+import { translateMarkdownClaudeCli } from '../translate/translate-markdown-claude-cli.js';
+import { resolveProviderFromEnv } from '../translate/translate-provider.js';
+import type { TranslateProvider } from '../translate/translate-provider.js';
 import { loadTranslateConfig } from '../config/load-translate-config.js';
 import { loadTranslateRules } from '../rules/load-translate-rules.js';
 import {
@@ -14,10 +17,11 @@ import {
 } from '../quota/doc-translate-quota-state.js';
 import { logDocTranslateCost } from '../metrics/log-doc-cache-metrics.js';
 import { resolveGlobalCachePath } from './resolve-global-cache-path.js';
+import { copyFreshSiblingCache } from './sibling-cache.js';
 import { formatDocCache, parseDocCache } from './parse-doc-cache.js';
 import type { DocCacheMeta } from './doc-cache-meta.interface.js';
 
-export type TranslateProvider = 'cursor-cli' | 'openai';
+export type { TranslateProvider } from '../translate/translate-provider.js';
 
 export interface TranslateDocOptions {
   sourcePath: string;
@@ -40,20 +44,13 @@ export interface TranslateDocResult {
   provider: TranslateProvider;
   translateModel: string;
   skipped: boolean;
-  reason: 'up_to_date' | 'dry_run' | 'translated' | 'quota_exhausted';
+  reason: 'up_to_date' | 'sibling_copy' | 'dry_run' | 'translated' | 'quota_exhausted';
   sourceSha256: string;
   usedFallback?: boolean;
 }
 
 function resolveProvider(explicit: TranslateProvider | undefined, fromConfig: TranslateProvider): TranslateProvider {
-  const fromEnv = process.env.CURSOR_TRANSLATE_PROVIDER;
-  if (explicit) {
-    return explicit;
-  }
-  if (fromEnv === 'openai' || fromEnv === 'cursor-cli') {
-    return fromEnv;
-  }
-  return fromConfig;
+  return explicit ?? resolveProviderFromEnv() ?? fromConfig;
 }
 
 async function readExistingSha(cachePath: string): Promise<string | null> {
@@ -107,6 +104,31 @@ export async function translateDocToGlobalCache(
     };
   }
 
+  // Before spending on a translation, try to reuse a fresh cache entry from a
+  // sibling install (cursor-translate ↔ claude-translate share the format).
+  if (!options.force && config.shareSiblingCaches) {
+    const sibling = await copyFreshSiblingCache({
+      projectSlug,
+      sourcePath,
+      projectRoot,
+      sourceSha256,
+      targetCachePath: cachePath,
+    });
+
+    if (sibling) {
+      return {
+        sourcePath,
+        cachePath,
+        projectSlug,
+        provider,
+        translateModel: model,
+        skipped: true,
+        reason: 'sibling_copy',
+        sourceSha256,
+      };
+    }
+  }
+
   const [glossaryTerms, customRules] = await Promise.all([
     loadGlossaryTerms(projectRoot),
     loadTranslateRules(projectRoot),
@@ -135,6 +157,32 @@ export async function translateDocToGlobalCache(
 
     if (result.quotaExhausted) {
       await markDocTranslateQuotaExhausted('openai quota exhausted for doc translation');
+      return {
+        sourcePath,
+        cachePath,
+        projectSlug,
+        provider,
+        translateModel,
+        skipped: true,
+        reason: 'quota_exhausted',
+        sourceSha256,
+        usedFallback,
+      };
+    }
+  } else if (provider === 'claude-cli') {
+    const result = translateMarkdownClaudeCli(sourceRaw, {
+      model,
+      fallbackModel: docFallbackModel,
+      glossaryTerms,
+      customRules,
+      allowFallback: true,
+    });
+    translatedBody = result.text;
+    translateModel = result.modelUsed;
+    usedFallback = result.usedFallback;
+
+    if (result.quotaExhausted) {
+      await markDocTranslateQuotaExhausted('claude-cli quota exhausted for doc translation');
       return {
         sourcePath,
         cachePath,

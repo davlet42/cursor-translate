@@ -8,7 +8,7 @@ export interface DocCacheServedMetricsInput {
   sourcePath: string;
   cachePath: string;
   projectSlug: string;
-  action: 'cache_hit' | 'translated' | 'cache_refreshed';
+  action: 'cache_hit' | 'sibling_copy' | 'translated' | 'cache_refreshed';
   sourceRaw: string;
   translateModel?: string;
   usedFallback?: boolean;
