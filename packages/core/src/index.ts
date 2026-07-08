@@ -57,6 +57,19 @@ export type { TranslateProvider } from './translate/translate-provider.js';
 export type { TranslateConfig } from './interfaces/translate-config.interface.js';
 export type { TranslateDocResult } from './cache/translate-doc-to-global-cache.js';
 export type { ResolveDocForReadResult, ResolveDocAction } from './cache/resolve-doc-for-read.js';
+export { splitMarkdownSections } from './markdown/split-markdown-sections.js';
+export type { MarkdownSection } from './markdown/split-markdown-sections.js';
+export {
+  assembleSectionTranslatedBody,
+  readSectionSidecar,
+  writeSectionSidecar,
+  resolveSectionSidecarPath,
+} from './cache/section-doc-cache.js';
+export { exceedsLazyReadLimit } from './cache/exceeds-lazy-read-limit.js';
+export { formatLazyDeferredHint } from './cache/format-lazy-deferred-hint.js';
+export { resolveCliBrand } from './config/resolve-cli-brand.js';
+export { countMarkdownTranslateChunks } from './translate/count-markdown-translate-chunks.js';
+export { translateMarkdownWithProvider } from './translate/translate-markdown-with-provider.js';
 export { appendCursorAgentTrustArgs } from './agent/append-cursor-agent-trust-args.js';
 export { resolveProjectRoot } from './project/resolve-project-root.js';
 export { resolveInstallRoot } from './helpers/resolve-install-root.js';

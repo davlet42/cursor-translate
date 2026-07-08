@@ -21,6 +21,10 @@ export function parseDocCache(raw: string): { meta: DocCacheMeta; body: string }
   const sourceSha256 = parseFrontmatterValue(frontmatter, 'cursor-translate-source-sha256');
   const generatedAt = parseFrontmatterValue(frontmatter, 'cursor-translate-generated-at');
   const projectSlug = parseFrontmatterValue(frontmatter, 'cursor-translate-project');
+  const incrementalRaw = parseFrontmatterValue(frontmatter, 'cursor-translate-incremental');
+  const incremental = incrementalRaw === 'section' ? 'section' : undefined;
+  const versionRaw = parseFrontmatterValue(frontmatter, 'cursor-translate-version');
+  const cursorTranslateVersion = versionRaw ? Number(versionRaw) : 1;
 
   if (!sourcePath || !sourceSha256 || !generatedAt || !projectSlug) {
     return null;
@@ -28,24 +32,26 @@ export function parseDocCache(raw: string): { meta: DocCacheMeta; body: string }
 
   return {
     meta: {
-      cursorTranslateVersion: 1,
+      cursorTranslateVersion: Number.isFinite(cursorTranslateVersion) ? cursorTranslateVersion : 1,
       sourcePath,
       sourceSha256,
       generatedAt,
       projectSlug,
+      incremental,
     },
     body,
   };
 }
 
 export function formatDocCache(meta: DocCacheMeta, body: string): string {
+  const incrementalLine = meta.incremental ? `cursor-translate-incremental: ${meta.incremental}\n` : '';
   return `---
 cursor-translate-version: ${meta.cursorTranslateVersion}
 cursor-translate-source: ${meta.sourcePath}
 cursor-translate-source-sha256: ${meta.sourceSha256}
 cursor-translate-generated-at: ${meta.generatedAt}
 cursor-translate-project: ${meta.projectSlug}
----
+${incrementalLine}---
 
 ${body.trimStart()}
 `;

@@ -1,9 +1,10 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { resolveTranslateHome } from '../config/resolve-translate-home.js';
 import { resolveCachePathUnderHome } from './resolve-global-cache-path.js';
 import { parseDocCache } from './parse-doc-cache.js';
+import { resolveSectionSidecarPath } from './section-doc-cache.js';
 
 // cursor-translate and claude-translate share the same cache format and the
 // same slug/relative-path scheme, so a doc translated by one tool can be
@@ -67,6 +68,14 @@ export async function copyFreshSiblingCache(
 
     await mkdir(dirname(options.targetCachePath), { recursive: true });
     await writeFile(options.targetCachePath, raw, 'utf8');
+    try {
+      await copyFile(
+        resolveSectionSidecarPath(siblingCachePath),
+        resolveSectionSidecarPath(options.targetCachePath),
+      );
+    } catch {
+      // Sidecar is optional for v1 caches.
+    }
     return { siblingHome, siblingCachePath };
   }
 

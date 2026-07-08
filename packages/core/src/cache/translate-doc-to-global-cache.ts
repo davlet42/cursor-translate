@@ -4,9 +4,6 @@ import { sha256Hex } from '../hash/sha256-hex.js';
 import { resolveProjectSlug } from '../project/resolve-project-slug.js';
 import { resolveProjectRoot } from '../project/resolve-project-root.js';
 import { loadGlossaryTerms } from '../glossary/load-glossary-terms.js';
-import { translateMarkdownOpenAi } from '../translate/translate-markdown-openai.js';
-import { translateMarkdownCursorCli } from '../translate/translate-markdown-cursor-cli.js';
-import { translateMarkdownClaudeCli } from '../translate/translate-markdown-claude-cli.js';
 import { resolveProviderFromEnv } from '../translate/translate-provider.js';
 import type { TranslateProvider } from '../translate/translate-provider.js';
 import { loadTranslateConfig } from '../config/load-translate-config.js';
@@ -20,6 +17,13 @@ import { resolveGlobalCachePath } from './resolve-global-cache-path.js';
 import { copyFreshSiblingCache } from './sibling-cache.js';
 import { formatDocCache, parseDocCache } from './parse-doc-cache.js';
 import type { DocCacheMeta } from './doc-cache-meta.interface.js';
+import { splitMarkdownSections } from '../markdown/split-markdown-sections.js';
+import {
+  assembleSectionTranslatedBody,
+  readSectionSidecar,
+  writeSectionSidecar,
+} from './section-doc-cache.js';
+import { translateMarkdownWithProvider } from '../translate/translate-markdown-with-provider.js';
 
 export type { TranslateProvider } from '../translate/translate-provider.js';
 
@@ -60,6 +64,120 @@ async function readExistingSha(cachePath: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+async function translateFullDocument(
+  sourceRaw: string,
+  options: {
+    provider: TranslateProvider;
+    model: string;
+    docFallbackModel: string;
+    glossaryTerms: string[];
+    customRules: string | null;
+    apiKey?: string;
+  },
+): Promise<{
+  translatedBody: string;
+  translateModel: string;
+  usedFallback: boolean;
+  translateCostUsd?: number;
+  quotaExhausted: boolean;
+}> {
+  const result = await translateMarkdownWithProvider(sourceRaw, {
+    provider: options.provider,
+    model: options.model,
+    docFallbackModel: options.docFallbackModel,
+    glossaryTerms: options.glossaryTerms,
+    customRules: options.customRules,
+    apiKey: options.apiKey,
+    allowFallback: true,
+  });
+
+  return {
+    translatedBody: result.text,
+    translateModel: result.modelUsed,
+    usedFallback: result.usedFallback,
+    translateCostUsd: result.costUsd,
+    quotaExhausted: result.quotaExhausted,
+  };
+}
+
+async function translateIncrementalSections(
+  sourceRaw: string,
+  cachePath: string,
+  options: {
+    provider: TranslateProvider;
+    model: string;
+    docFallbackModel: string;
+    glossaryTerms: string[];
+    customRules: string | null;
+    apiKey?: string;
+    force?: boolean;
+  },
+): Promise<{
+  translatedBody: string;
+  translateModel: string;
+  usedFallback: boolean;
+  translateCostUsd?: number;
+  quotaExhausted: boolean;
+}> {
+  const sections = splitMarkdownSections(sourceRaw);
+  const existingSections = options.force ? new Map<string, string>() : await readSectionSidecar(cachePath);
+  const translatedByKey = new Map<string, string>();
+  let translateModel = options.model;
+  let usedFallback = false;
+  let translateCostUsd: number | undefined;
+  let quotaExhausted = false;
+
+  for (const section of sections) {
+    const cached = existingSections.get(section.sectionKey);
+    if (cached && !options.force) {
+      translatedByKey.set(section.sectionKey, cached);
+      continue;
+    }
+
+    const result = await translateMarkdownWithProvider(section.sourceText, {
+      provider: options.provider,
+      model: options.model,
+      docFallbackModel: options.docFallbackModel,
+      glossaryTerms: options.glossaryTerms,
+      customRules: options.customRules,
+      apiKey: options.apiKey,
+      allowFallback: true,
+    });
+
+    translateModel = result.modelUsed;
+    usedFallback = usedFallback || result.usedFallback;
+    if (result.costUsd !== undefined) {
+      translateCostUsd = (translateCostUsd ?? 0) + result.costUsd;
+    }
+
+    if (result.quotaExhausted) {
+      quotaExhausted = true;
+      if (cached) {
+        translatedByKey.set(section.sectionKey, cached);
+        continue;
+      }
+      translatedByKey.set(section.sectionKey, section.sourceText);
+      continue;
+    }
+
+    translatedByKey.set(section.sectionKey, result.text);
+  }
+
+  const translatedBody = assembleSectionTranslatedBody(sections, translatedByKey);
+  await writeSectionSidecar(
+    cachePath,
+    Object.fromEntries(translatedByKey.entries()),
+  );
+
+  return {
+    translatedBody,
+    translateModel,
+    usedFallback,
+    translateCostUsd,
+    quotaExhausted,
+  };
 }
 
 export async function translateDocToGlobalCache(
@@ -104,8 +222,6 @@ export async function translateDocToGlobalCache(
     };
   }
 
-  // Before spending on a translation, try to reuse a fresh cache entry from a
-  // sibling install (cursor-translate ↔ claude-translate share the format).
   if (!options.force && config.shareSiblingCaches) {
     const sibling = await copyFreshSiblingCache({
       projectSlug,
@@ -134,109 +250,49 @@ export async function translateDocToGlobalCache(
     loadTranslateRules(projectRoot),
   ]);
 
-  let translatedBody: string;
-  let translateModel = model;
-  let usedFallback = false;
-  let translateCostUsd: number | undefined;
+  const translateOptions = {
+    provider,
+    model,
+    docFallbackModel,
+    glossaryTerms,
+    customRules,
+    apiKey: options.apiKey,
+    force: options.force,
+  };
 
-  if (provider === 'openai') {
-    const apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is required when CURSOR_TRANSLATE_PROVIDER=openai');
-    }
-    const result = await translateMarkdownOpenAi(sourceRaw, {
-      apiKey,
-      model,
-      fallbackModel: docFallbackModel,
-      glossaryTerms,
-      customRules,
-      allowFallback: true,
-    });
-    translatedBody = result.text;
-    translateModel = result.modelUsed;
-    usedFallback = result.usedFallback;
+  const useIncremental = config.cacheIncremental === 'section';
+  const translation = useIncremental
+    ? await translateIncrementalSections(sourceRaw, cachePath, translateOptions)
+    : await translateFullDocument(sourceRaw, translateOptions);
 
-    if (result.quotaExhausted) {
-      await markDocTranslateQuotaExhausted('openai quota exhausted for doc translation');
-      return {
-        sourcePath,
-        cachePath,
-        projectSlug,
-        provider,
-        translateModel,
-        skipped: true,
-        reason: 'quota_exhausted',
-        sourceSha256,
-        usedFallback,
-      };
-    }
-  } else if (provider === 'claude-cli') {
-    const result = translateMarkdownClaudeCli(sourceRaw, {
-      model,
-      fallbackModel: docFallbackModel,
-      glossaryTerms,
-      customRules,
-      allowFallback: true,
-    });
-    translatedBody = result.text;
-    translateModel = result.modelUsed;
-    usedFallback = result.usedFallback;
-    translateCostUsd = result.costUsd;
-
-    if (result.quotaExhausted) {
-      await markDocTranslateQuotaExhausted('claude-cli quota exhausted for doc translation');
-      return {
-        sourcePath,
-        cachePath,
-        projectSlug,
-        provider,
-        translateModel,
-        skipped: true,
-        reason: 'quota_exhausted',
-        sourceSha256,
-        usedFallback,
-      };
-    }
-  } else {
-    const result = translateMarkdownCursorCli(sourceRaw, {
-      model,
-      fallbackModel: docFallbackModel,
-      glossaryTerms,
-      customRules,
-      allowFallback: true,
-    });
-    translatedBody = result.text;
-    translateModel = result.modelUsed;
-    usedFallback = result.usedFallback;
-
-    if (result.quotaExhausted) {
-      await markDocTranslateQuotaExhausted('cursor-cli quota exhausted for doc translation');
-      return {
-        sourcePath,
-        cachePath,
-        projectSlug,
-        provider,
-        translateModel,
-        skipped: true,
-        reason: 'quota_exhausted',
-        sourceSha256,
-        usedFallback,
-      };
-    }
+  if (translation.quotaExhausted) {
+    await markDocTranslateQuotaExhausted(`${provider} quota exhausted for doc translation`);
+    return {
+      sourcePath,
+      cachePath,
+      projectSlug,
+      provider,
+      translateModel: translation.translateModel,
+      skipped: true,
+      reason: 'quota_exhausted',
+      sourceSha256,
+      usedFallback: translation.usedFallback,
+    };
   }
 
   await clearDocTranslateQuotaState();
 
   const meta: DocCacheMeta = {
-    cursorTranslateVersion: 1,
+    cursorTranslateVersion: useIncremental ? 2 : 1,
     sourcePath,
     sourceSha256,
     generatedAt: new Date().toISOString(),
     projectSlug,
+    incremental: useIncremental ? 'section' : undefined,
   };
 
   await mkdir(dirname(cachePath), { recursive: true });
-  await writeFile(cachePath, formatDocCache(meta, translatedBody), 'utf8');
+  await writeFile(cachePath, formatDocCache(meta, translation.translatedBody), 'utf8');
 
   if (!options.skipMetrics) {
     await logDocTranslateCost({
@@ -244,11 +300,11 @@ export async function translateDocToGlobalCache(
       cachePath,
       projectSlug,
       sourceRaw,
-      translatedBody,
-      translateModel,
-      usedFallback,
+      translatedBody: translation.translatedBody,
+      translateModel: translation.translateModel,
+      usedFallback: translation.usedFallback,
       trigger: options.metricsTrigger ?? 'doc_cli',
-      translateCostUsd,
+      translateCostUsd: translation.translateCostUsd,
     });
   }
 
@@ -257,10 +313,10 @@ export async function translateDocToGlobalCache(
     cachePath,
     projectSlug,
     provider,
-    translateModel,
+    translateModel: translation.translateModel,
     skipped: false,
     reason: 'translated',
     sourceSha256,
-    usedFallback,
+    usedFallback: translation.usedFallback,
   };
 }
