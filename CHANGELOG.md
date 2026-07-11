@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.8 (2026-07-11)
+
+- **README**: npm-oriented product README (English) aligned with [claude-translate](https://github.com/davlet42/claude-translate) — token savings matrix, two-tier model strategy, installation, CLI reference, plugin contents, metrics ROI, and related docs.
+
 ## 0.2.7 (2026-07-08)
 
 - **Full economy report**: new `ROI full economy` section counts display/MessageDisplay transcript EN savings (`response_back_translated`), not just doc cache + CLI prompts.
