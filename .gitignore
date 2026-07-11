@@ -3,6 +3,7 @@ dist/
 plugin/plugin
 packages/cli/plugin/
 packages/cli/templates/
+packages/cli/README.md
 *.log
 .DS_Store
 .env
