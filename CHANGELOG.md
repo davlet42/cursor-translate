@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.9 (2026-07-11)
+
+- **npm README**: `prepare-publish.sh` copies root `README.md` into `packages/cli` and whitelists it in `files` so https://www.npmjs.com/package/cursor-translate shows the product README (monorepo root README is not published automatically).
+
 ## 0.2.8 (2026-07-11)
 
 - **README**: npm-oriented product README (English) aligned with [claude-translate](https://github.com/davlet42/claude-translate) — token savings matrix, two-tier model strategy, installation, CLI reference, plugin contents, metrics ROI, and related docs.

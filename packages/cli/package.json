@@ -1,7 +1,7 @@
 {
   "name": "cursor-translate",
-  "version": "0.2.8",
-  "description": "CLI for cursor-translate token-saving layer",
+  "version": "0.2.9",
+  "description": "Save tokens on Cyrillic text in Cursor: cheap nano translate tier, lazy EN doc cache via preToolUse hook, MCP, CLI",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -9,27 +9,46 @@
     "url": "git+https://github.com/davlet42/cursor-translate.git",
     "directory": "packages/cli"
   },
+  "homepage": "https://github.com/davlet42/cursor-translate",
   "bin": {
     "cursor-translate": "./dist/cli.js"
   },
   "files": [
     "dist",
     "plugin",
-    "templates"
+    "templates",
+    "README.md"
   ],
+  "keywords": [
+    "cursor",
+    "translation",
+    "cyrillic",
+    "russian",
+    "tokens",
+    "mcp",
+    "hooks",
+    "plugin",
+    "agents"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepack": "npm run build && bash ../../scripts/prepare-publish.sh",
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {
-    "@cursor-translate/core": "0.2.8"
+    "@cursor-translate/core": "0.2.9"
   },
   "optionalDependencies": {
-    "@cursor-translate/mcp": "0.2.8"
+    "@cursor-translate/mcp": "0.2.9"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }

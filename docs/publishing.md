@@ -59,7 +59,7 @@ npm run verify:mcp
    npm run prepare:publish
    ```
 
-   This copies `plugin/` and `templates/` into `packages/cli/` so `cursor-translate init` works after `npm i -g`.
+   This copies `plugin/`, `templates/`, and root `README.md` into `packages/cli/` so `cursor-translate init` works after `npm i -g` and the npm package page shows the README.
 
 5. Git tag: `git tag v0.1.x && git push origin v0.1.x`
 
