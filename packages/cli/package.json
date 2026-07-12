@@ -1,6 +1,6 @@
 {
   "name": "cursor-translate",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Save tokens on Cyrillic text in Cursor: cheap nano translate tier, lazy EN doc cache via preToolUse hook, MCP, CLI",
   "license": "MIT",
   "type": "module",

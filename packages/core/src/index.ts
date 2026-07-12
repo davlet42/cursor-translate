@@ -12,6 +12,8 @@ export { countCyrillicRatio } from './detect/count-cyrillic-ratio.js';
 export { translateDocToGlobalCache } from './cache/translate-doc-to-global-cache.js';
 export { translateProjectDocsToGlobalCache } from './cache/translate-project-docs-to-global-cache.js';
 export { resolveDocForRead } from './cache/resolve-doc-for-read.js';
+export { gcOrphanedCaches, maybeGcOrphanedCaches, DEFAULT_GC_ORPHAN_DAYS } from './cache/gc-orphaned-caches.js';
+export type { GcOrphanedCachesOptions, GcOrphanedCachesResult } from './cache/gc-orphaned-caches.js';
 export {
   copyFreshSiblingCache,
   resolveSiblingTranslateHomes,

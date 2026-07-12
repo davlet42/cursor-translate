@@ -33,6 +33,7 @@ export interface LoadedTranslateConfig {
   lazyReadMaxChunks: number;
   lazyReadHints: boolean;
   cacheIncremental: 'off' | 'section';
+  gcOrphanDays: number;
 }
 
 const DEFAULTS: LoadedTranslateConfig = {
@@ -49,6 +50,7 @@ const DEFAULTS: LoadedTranslateConfig = {
   lazyReadMaxChunks: DEFAULT_LAZY_READ_MAX_CHUNKS,
   lazyReadHints: true,
   cacheIncremental: 'section',
+  gcOrphanDays: 30,
 };
 
 function parseYamlScalar(block: string, key: string): string | null {
@@ -177,6 +179,10 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     parseNestedScalar(raw, 'cache', 'lazy_read_hints'),
     DEFAULTS.lazyReadHints,
   );
+  const gcOrphanDays = parseNumber(
+    parseNestedScalar(raw, 'cache', 'gc_orphan_days'),
+    DEFAULTS.gcOrphanDays,
+  );
   const incrementalRaw = parseNestedScalar(raw, 'cache', 'incremental');
   const cacheIncremental =
     incrementalRaw === 'off' ? 'off' : incrementalRaw === 'section' ? 'section' : DEFAULTS.cacheIncremental;
@@ -195,5 +201,6 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     lazyReadMaxChunks,
     lazyReadHints,
     cacheIncremental,
+    gcOrphanDays,
   };
 }

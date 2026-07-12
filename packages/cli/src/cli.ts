@@ -6,6 +6,7 @@ import { runDocs } from './commands/docs.js';
 import { runResolve } from './commands/resolve.js';
 import { runHookResolve } from './commands/hook-resolve.js';
 import { runBackfillCosts } from './commands/backfill-costs.js';
+import { runCacheGc } from './commands/cache-gc.js';
 import { runPrompt } from './commands/prompt.js';
 import { runAgent } from './commands/agent.js';
 
@@ -49,6 +50,9 @@ async function main(): Promise<void> {
       break;
     case 'backfill-costs':
       await runBackfillCosts(args.slice(1));
+      break;
+    case 'cache-gc':
+      await runCacheGc(args.slice(1));
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -131,6 +135,7 @@ Usage:
   cursor-translate agent [agent flags] -- "<prompt>" [--json] [--no-back-translate]
   cursor-translate report [--days 7] [--backfill-costs] [--project slug]
   cursor-translate backfill-costs [--project slug] [--dry-run]
+  cursor-translate cache-gc [--dry-run] [--days 30]  (drop caches of deleted docs)
 
 Docs: https://github.com/davlet42/cursor-translate
 `);

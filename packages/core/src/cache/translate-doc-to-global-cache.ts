@@ -13,6 +13,7 @@ import {
   markDocTranslateQuotaExhausted,
 } from '../quota/doc-translate-quota-state.js';
 import { logDocTranslateCost } from '../metrics/log-doc-cache-metrics.js';
+import { maybeGcOrphanedCaches } from './gc-orphaned-caches.js';
 import { resolveGlobalCachePath } from './resolve-global-cache-path.js';
 import { copyFreshSiblingCache } from './sibling-cache.js';
 import { formatDocCache, parseDocCache } from './parse-doc-cache.js';
@@ -334,6 +335,10 @@ export async function translateDocToGlobalCache(
   if (!(await flatCacheMatchesSha(cachePath, sourceSha256))) {
     throw new Error(`Failed to write doc cache file: ${cachePath}`);
   }
+
+  // A translation already ran (slow path) — cheap moment to sweep orphaned
+  // caches of deleted/renamed docs, at most once a day.
+  await maybeGcOrphanedCaches(config.gcOrphanDays);
 
   if (!options.skipMetrics) {
     await logDocTranslateCost({

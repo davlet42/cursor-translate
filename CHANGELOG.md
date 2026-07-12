@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.11 (2026-07-12)
+
+- **Orphan cache GC.** Caches of deleted/renamed docs used to live forever (invalidation is sha-based only). New `cursor-translate cache-gc [--dry-run] [--days N]` command plus a throttled auto-sweep (at most once a day, piggybacked on the translate path): a cache whose `cursor-translate-source` has been missing for over `cache.gc_orphan_days` (default 30, `0` disables) is removed together with its `.en.sections.json` sidecar. The grace period protects git branch switches — the orphan marker is dropped the moment the source reappears, and a later disappearance restarts the clock. Runs are logged to `metrics.jsonl` as `source: "cache_gc"`; entries without recognizable frontmatter are never touched.
+- **Config:** the `cache.ttl_days` template key was dead (parsed nowhere) — replaced by `cache.gc_orphan_days`.
+
 ## 0.2.10 (2026-07-12)
 
 - **README repositioned around the measured value** (mirrors claude-translate 0.3.6). The core (and the focus) is the Cyrillic doc cache — with the honest economics (translation is an investment per doc version repaid in a few reads; edits are cheap thanks to section-incremental re-translation; savings scale with how much Cyrillic markdown agents read) and `cursor-translate report` promoted so users pull their own numbers. The headless `agent` wrapper, MCP tools and audits moved under "Extras (opt-in, experimental)" with an explicit platform-limits note: Cursor has no display-layer substitution at all (unlike Claude Code's `MessageDisplay`), so prompt/reply translation exists only outside the IDE loop.
