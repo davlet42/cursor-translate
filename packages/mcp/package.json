@@ -23,7 +23,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@cursor-translate/core": "0.2.9",
+    "@cursor-translate/core": "0.2.11",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.24.0"
   },

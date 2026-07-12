@@ -27,16 +27,37 @@ let drifted = false;
 for (const rel of targets) {
   const path = join(ROOT, rel);
   const json = JSON.parse(readFileSync(path, 'utf8'));
-  if (json.version === version) {
+
+  // Internal workspace deps are pinned exact; a stale pin makes npm resolve
+  // the REGISTRY tarball instead of the workspace link, so CI builds against
+  // the previous release (bit us in v0.2.11: TS2305 on fresh core exports).
+  const internalDeps = [];
+  for (const section of ['dependencies', 'devDependencies']) {
+    for (const dep of Object.keys(json[section] ?? {})) {
+      if ((dep === 'cursor-translate' || dep.startsWith('@cursor-translate/')) && json[section][dep] !== version) {
+        internalDeps.push({ section, dep });
+      }
+    }
+  }
+
+  if (json.version === version && internalDeps.length === 0) {
     continue;
   }
   drifted = true;
   if (check) {
-    console.error(`${rel}: ${json.version} drifted from root package.json (${version})`);
+    if (json.version !== version) {
+      console.error(`${rel}: ${json.version} drifted from root package.json (${version})`);
+    }
+    for (const { section, dep } of internalDeps) {
+      console.error(`${rel}: ${section}.${dep} pinned to ${json[section][dep]}, expected ${version}`);
+    }
   } else {
     json.version = version;
+    for (const { section, dep } of internalDeps) {
+      json[section][dep] = version;
+    }
     writeFileSync(path, `${JSON.stringify(json, null, 2)}\n`);
-    console.log(`${rel}: synced to ${version}`);
+    console.log(`${rel}: synced to ${version}${internalDeps.length ? ` (+${internalDeps.length} internal dep pins)` : ''}`);
   }
 }
 
