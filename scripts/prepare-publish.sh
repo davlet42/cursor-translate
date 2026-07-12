@@ -4,7 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLI_PKG="$ROOT/packages/cli"
 
-echo "prepare:publish — copy plugin + templates into packages/cli"
+echo "prepare:publish — verify lockstep versions, copy plugin + templates into packages/cli"
+
+node "$ROOT/scripts/sync-package-versions.mjs" --check
 
 rm -rf "$CLI_PKG/plugin" "$CLI_PKG/templates"
 cp -R "$ROOT/plugin" "$CLI_PKG/plugin"

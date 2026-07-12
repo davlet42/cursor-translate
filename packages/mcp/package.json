@@ -1,6 +1,6 @@
 {
   "name": "@cursor-translate/mcp",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "MCP server — translate tool for Cursor agents (Cloud + IDE)",
   "license": "MIT",
   "type": "module",

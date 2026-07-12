@@ -1,6 +1,6 @@
 {
   "name": "cursor-translate",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "private": true,
   "description": "Token-saving RU→EN translation layer for Cursor IDE, CLI, and SDK",
   "license": "MIT",
@@ -17,7 +17,8 @@
     "lint": "eslint packages --ext .ts",
     "test": "npm run build && node --test test/*.test.mjs",
     "verify:mcp": "bash scripts/verify-mcp.sh",
-    "prepare:publish": "bash scripts/prepare-publish.sh"
+    "prepare:publish": "bash scripts/prepare-publish.sh",
+    "version": "node scripts/sync-package-versions.mjs && git add packages/cli/package.json packages/core/package.json packages/mcp/package.json plugin/.cursor-plugin/plugin.json"
   },
   "engines": {
     "node": ">=24"

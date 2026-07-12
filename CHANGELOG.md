@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.10 (2026-07-12)
+
+- **README repositioned around the measured value** (mirrors claude-translate 0.3.6). The core (and the focus) is the Cyrillic doc cache — with the honest economics (translation is an investment per doc version repaid in a few reads; edits are cheap thanks to section-incremental re-translation; savings scale with how much Cyrillic markdown agents read) and `cursor-translate report` promoted so users pull their own numbers. The headless `agent` wrapper, MCP tools and audits moved under "Extras (opt-in, experimental)" with an explicit platform-limits note: Cursor has no display-layer substitution at all (unlike Claude Code's `MessageDisplay`), so prompt/reply translation exists only outside the IDE loop.
+- **Release tooling:** `scripts/sync-package-versions.mjs` keeps the three workspace packages and `plugin/.cursor-plugin/plugin.json` in lockstep with the root `package.json` — synced automatically on `npm version`, verified by `prepare-publish.sh` on every prepack (publish fails on drift).
+
 ## 0.2.9 (2026-07-11)
 
 - **npm README**: `prepare-publish.sh` copies root `README.md` into `packages/cli` and whitelists it in `files` so https://www.npmjs.com/package/cursor-translate shows the product README (monorepo root README is not published automatically).
