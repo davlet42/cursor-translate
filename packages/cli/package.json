@@ -39,7 +39,7 @@
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {
-    "@cursor-translate/core": "0.2.12"
+    "@cursor-translate/core": "0.2.13"
   },
   "optionalDependencies": {
     "@cursor-translate/mcp": "0.2.9"
