@@ -97,7 +97,10 @@ export {
   writeSectionSidecar,
   resolveSectionSidecarPath,
 } from './cache/section-doc-cache.js';
-export { exceedsLazyReadLimit } from './cache/exceeds-lazy-read-limit.js';
+export {
+  exceedsLazyReadLimit,
+  countLazyReadTranslateUnits,
+} from './cache/exceeds-lazy-read-limit.js';
 export { formatLazyDeferredHint } from './cache/format-lazy-deferred-hint.js';
 export { resolveCliBrand } from './config/resolve-cli-brand.js';
 export { countMarkdownTranslateChunks } from './translate/count-markdown-translate-chunks.js';

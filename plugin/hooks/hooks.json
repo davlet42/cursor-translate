@@ -5,7 +5,7 @@
       {
         "command": "hooks/translate-lazy-read.sh",
         "matcher": "Read",
-        "timeout": 600
+        "timeout": 15
       }
     ],
     "beforeSubmitPrompt": [

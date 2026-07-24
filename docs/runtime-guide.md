@@ -41,7 +41,7 @@ Input includes assistant `text`. The docs define **no output fields** to modify 
 
 Documented output includes `updated_input`. That is how **lazy read** works: before `Read`, the hook rewrites `path` to the English cache file.
 
-**Large cold/stale docs:** when a Cyrillic `.md` file exceeds `cache.lazy_read_max_chars` (default **50 000**) or `cache.lazy_read_max_chunks` (default **3**) and there is no fresh EN cache, lazy translate is **skipped** — the agent reads the Russian original. Cursor shows an `agent_message` with estimated warmup cost and per-read savings; run `cursor-translate doc <file>` to pre-warm.
+**Large cold/stale docs:** when a Cyrillic `.md` file exceeds `cache.lazy_read_max_chars` (default **50 000**) or `cache.lazy_read_max_chunks` (default **3**) and there is no fresh EN cache, lazy translate is **skipped** — the agent reads the Russian original. Chunk limit counts **incremental Cyrillic units** when `cache.incremental` is `block`/`paragraph`/`section` (not size-based API slices).  Cursor shows an `agent_message` with estimated warmup cost and per-read savings; run `cursor-translate doc <file>` to pre-warm.
 
 **Incremental cache:** `cache.incremental: block` (default) re-translates only changed callouts / paragraphs / `##`–`###` sections on `doc` / `docs` and on lazy reads for files under the size limit. Payloads live in a sidecar `*.en.sections.json` next to the flat `*.en.md` served to Read. Modes: `block` · `paragraph` · `section` · `off`.
 

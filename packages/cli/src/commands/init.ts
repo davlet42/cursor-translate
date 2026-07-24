@@ -35,7 +35,7 @@ interface HookDefinition {
 }
 
 const CURSOR_TRANSLATE_HOOKS: HookDefinition[] = [
-  { event: 'preToolUse', script: 'translate-lazy-read.sh', matcher: 'Read', timeout: 600 },
+  { event: 'preToolUse', script: 'translate-lazy-read.sh', matcher: 'Read', timeout: 15 },
   { event: 'beforeSubmitPrompt', script: 'translate-audit.sh', matcher: 'UserPromptSubmit', timeout: 5 },
   { event: 'afterAgentResponse', script: 'translate-audit-response.sh', timeout: 5 },
   { event: 'postToolUse', script: 'translate-audit-read.sh', matcher: 'Read', timeout: 5 },

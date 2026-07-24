@@ -93,4 +93,25 @@ cache:
     assert.equal(stale.action, 'lazy_deferred');
     assert.equal(stale.readPath, sourcePath);
   });
+
+  it('defers mid-size docs with many incremental Cyrillic blocks (not size-chunk count)', async () => {
+    writeConfig(`enabled: true
+cache:
+  incremental: block
+  lazy_read_max_chars: 50000
+  lazy_read_max_chunks: 3
+  lazy_read_hints: true
+`);
+    // Under max_chars and under old size-based chunk count (=1 for ~12k), but >3 block units.
+    const paras = Array.from({ length: 12 }, (_, i) => `Абзац номер ${i + 1} с кириллицей для перевода.`).join('\n\n');
+    const body = `# Политика моделей\n\n${paras}\n`;
+    assert.ok(body.length < 50_000);
+    const sourcePath = join(PROJECT, 'MID-BLOCKS.md');
+    writeFileSync(sourcePath, body, 'utf8');
+
+    const result = await resolveDocForRead({ sourcePath, cwd: PROJECT });
+    assert.equal(result.action, 'lazy_deferred');
+    assert.equal(result.readPath, sourcePath);
+  });
+
 });

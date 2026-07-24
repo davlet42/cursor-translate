@@ -49,6 +49,26 @@ export interface ResolveDocForReadResult {
   userHint?: string;
 }
 
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | 'timeout'> {
+  if (timeoutMs <= 0) {
+    return promise;
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<'timeout'>((resolve) => {
+        timer = setTimeout(() => resolve('timeout'), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
+
 function isMarkdownPath(filePath: string): boolean {
   const ext = extname(filePath).toLowerCase();
   return ext === '.md' || ext === '.mdx';
@@ -226,14 +246,34 @@ export async function resolveDocForRead(
   }
 
   const hadCache = Boolean(await readExistingCacheBody(cachePath));
-  const translateResult = await translateDocToGlobalCache({
-    sourcePath,
-    cwd,
-    projectSlug,
-    force: options.force,
-    metricsTrigger: 'lazy_read',
-    skipMetrics: options.skipMetrics,
-  });
+  const translateOrTimeout = await withTimeout(
+    translateDocToGlobalCache({
+      sourcePath,
+      cwd,
+      projectSlug,
+      force: options.force,
+      metricsTrigger: 'lazy_read',
+      skipMetrics: options.skipMetrics,
+    }),
+    Math.max(0, config.lazyReadTimeoutSec) * 1000,
+  );
+
+  if (translateOrTimeout === 'timeout') {
+    const userHint = config.lazyReadHints
+      ? `${resolveCliBrand()}: lazy translate timed out after ${config.lazyReadTimeoutSec}s — reading Russian source.`
+      : undefined;
+    return {
+      sourcePath,
+      readPath: sourcePath,
+      cachePath,
+      projectSlug,
+      action: 'lazy_deferred',
+      sourceSha256,
+      userHint,
+    };
+  }
+
+  const translateResult = translateOrTimeout;
 
   if (translateResult.reason === 'quota_exhausted') {
     if (hadCache) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.13
+
+- **Fix Read hangs on mid-size Cyrillic docs** (Poieton vault roadmaps/policies): `lazy_read_max_chunks` now counts **incremental Cyrillic units** (`cache.incremental: block|paragraph|section`), not size-based API slices. A ~12k file was 1 API chunk but 60+ block units — lazy Read used to spawn dozens of `agent` CLI calls and block the UI for minutes (`hooks.lazy_read_timeout_sec` default was 600).
+- Default / template `hooks.lazy_read_timeout_sec` and Cursor `preToolUse` hook timeout lowered **600 → 15** (fail-open to Russian source). Hook script also self-times out.
+
+
 ## 0.2.12 (2026-07-24)
 
 - **Block-level incremental cache** (default `cache.incremental: block`). Cache units are `##`/`###` sections further split into Obsidian callouts / blockquotes, fenced code, and blank-line paragraphs. Editing one revision callout in a long preamble no longer re-translates the entire ~40k-char blob. Modes: `block` (default) · `paragraph` · `section` (legacy) · `off`. Units without Cyrillic are stored as identity (no API call). Sidecar keys remain content hashes in `*.en.sections.json`.

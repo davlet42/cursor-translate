@@ -74,7 +74,7 @@ cursor-translate report --days 7  # savings vs costs (full economy ROI)
 
 The plugin's `preToolUse` hook (matcher `Read`): if the file is `.md`/`.mdx` with Cyrillic and the cache is missing or stale (sha mismatch), it translates via nano, caches under `~/.cursor/translate-proxy/cache/<project>/…en.md`, and rewrites the tool call's `path` to the cache. It also injects a context note telling the agent to edit the **original** file, never the cache. Everything fails open: no CLI, quota exhausted, timeout → the original Russian file is read.
 
-**Large cold/stale docs:** when a file exceeds `cache.lazy_read_max_chars` (default 50 000) or `cache.lazy_read_max_chunks` (default 3), lazy translate is deferred — the agent reads Russian and sees a pre-warm hint. Run `cursor-translate doc <file>` to warm manually.
+**Large cold/stale docs:** when a file exceeds `cache.lazy_read_max_chars` (default 50 000) or `cache.lazy_read_max_chunks` (default 3), lazy translate is deferred — the agent reads Russian and sees a pre-warm hint. Chunk limit counts **incremental Cyrillic units** when `cache.incremental` is `block`/`paragraph`/`section` (not size-based API slices).  Run `cursor-translate doc <file>` to warm manually.
 
 **Incremental cache:** `cache.incremental: block` (default) re-translates only changed callouts / paragraphs / `##`–`###` sections; payloads live in `*.en.sections.json` sidecars next to flat `*.en.md` files served to Read. Legacy `section` keeps coarse `##`/`###` units only; `paragraph` skips callout-special casing; `off` re-translates the whole file.
 

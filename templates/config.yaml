@@ -37,8 +37,10 @@ cache:
   # Reuse fresh entries from a sibling install (claude-translate) before
   # re-translating. Override candidates: CURSOR_TRANSLATE_SIBLING_HOMES.
   share_siblings: true
-  # Skip on-demand lazy translate for very large cold/stale docs; serve Russian
-  # and show a pre-warm hint instead. Set lazy_read_max_chars: 0 to disable.
+  # Skip on-demand lazy translate for cold/stale docs over these limits; serve Russian
+  # and show a pre-warm hint. Chunks = incremental Cyrillic units when
+  # cache.incremental is block/paragraph/section (not size-based API slices).
+  # Set lazy_read_max_chars: 0 or lazy_read_max_chunks: 0 to disable that limit.
   lazy_read_max_chars: 50000
   lazy_read_max_chunks: 3
   lazy_read_hints: true
@@ -67,4 +69,5 @@ safety:
 hooks:
   audit_enabled: true
   merge_user_hooks: true
-  lazy_read_timeout_sec: 600
+  # Fail-open ceiling for on-Read translate (seconds). Keep low — UI blocks.
+  lazy_read_timeout_sec: 15

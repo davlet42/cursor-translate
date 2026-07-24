@@ -36,6 +36,7 @@ export interface LoadedTranslateConfig {
   lazyReadMaxChars: number;
   lazyReadMaxChunks: number;
   lazyReadHints: boolean;
+  lazyReadTimeoutSec: number;
   cacheIncremental: CacheIncrementalMode;
   gcOrphanDays: number;
 }
@@ -53,6 +54,7 @@ const DEFAULTS: LoadedTranslateConfig = {
   lazyReadMaxChars: DEFAULT_LAZY_READ_MAX_CHARS,
   lazyReadMaxChunks: DEFAULT_LAZY_READ_MAX_CHUNKS,
   lazyReadHints: true,
+  lazyReadTimeoutSec: 15,
   cacheIncremental: 'block',
   gcOrphanDays: 30,
 };
@@ -183,6 +185,10 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     parseNestedScalar(raw, 'cache', 'lazy_read_hints'),
     DEFAULTS.lazyReadHints,
   );
+  const lazyReadTimeoutSec = parseNumber(
+    parseNestedScalar(raw, 'hooks', 'lazy_read_timeout_sec'),
+    DEFAULTS.lazyReadTimeoutSec,
+  );
   const gcOrphanDays = parseNumber(
     parseNestedScalar(raw, 'cache', 'gc_orphan_days'),
     DEFAULTS.gcOrphanDays,
@@ -203,6 +209,7 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     lazyReadMaxChars,
     lazyReadMaxChunks,
     lazyReadHints,
+    lazyReadTimeoutSec,
     cacheIncremental,
     gcOrphanDays,
   };

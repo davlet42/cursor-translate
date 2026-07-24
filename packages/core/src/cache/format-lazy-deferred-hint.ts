@@ -1,6 +1,6 @@
 import { basename } from 'node:path';
 import { countCyrillicRatio } from '../detect/count-cyrillic-ratio.js';
-import { countMarkdownTranslateChunks } from '../translate/count-markdown-translate-chunks.js';
+import { countLazyReadTranslateUnits } from './exceeds-lazy-read-limit.js';
 import { estimateDocTranslateCost } from '../metrics/log-doc-cache-metrics.js';
 import { estimateTokenSavings } from '../metrics/estimate-token-savings.js';
 
@@ -14,7 +14,7 @@ export function formatLazyDeferredHint(
 ): string {
   const label = basename(sourcePath);
   const chars = sourceRaw.length;
-  const chunks = countMarkdownTranslateChunks(sourceRaw);
+  const chunks = countLazyReadTranslateUnits(sourceRaw, 'block');
   const cyrillicRatio = countCyrillicRatio(sourceRaw);
   const savings = estimateTokenSavings(sourceRaw, cyrillicRatio, 0);
   const enCharsEst = Math.max(1, savings.enTokensEst * 4);
@@ -23,7 +23,7 @@ export function formatLazyDeferredHint(
   const warmupUsd = ((warmupTokensEst / 1_000_000) * HAIKU_BLEND_USD_PER_MILLION).toFixed(2);
 
   return (
-    `${cliName}: ${label} (${chars.toLocaleString('en-US')} chars, ~${chunks} translate chunks) — ` +
+    `${cliName}: ${label} (${chars.toLocaleString('en-US')} chars, ~${chunks} translate units) — ` +
     `lazy translate skipped; reading Russian source. ` +
     `Pre-warm: ${cliName} doc ${label}. ` +
     `Est. warmup ~${warmupTokensEst.toLocaleString('en-US')} tokens (~$${warmupUsd}); ` +
