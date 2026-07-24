@@ -4,5 +4,5 @@ export interface DocCacheMeta {
   sourceSha256: string;
   generatedAt: string;
   projectSlug: string;
-  incremental?: 'section';
+  incremental?: 'section' | 'block' | 'paragraph';
 }

@@ -18,7 +18,12 @@ import { resolveGlobalCachePath } from './resolve-global-cache-path.js';
 import { copyFreshSiblingCache } from './sibling-cache.js';
 import { formatDocCache, parseDocCache } from './parse-doc-cache.js';
 import type { DocCacheMeta } from './doc-cache-meta.interface.js';
-import { splitMarkdownSections } from '../markdown/split-markdown-sections.js';
+import {
+  incrementalUnitNeedsTranslation,
+  isActiveCacheIncrementalMode,
+  splitForIncrementalCache,
+  type ActiveCacheIncrementalMode,
+} from '../markdown/split-for-incremental-cache.js';
 import {
   assembleSectionTranslatedBody,
   readSectionSidecar,
@@ -108,9 +113,10 @@ async function translateFullDocument(
   };
 }
 
-async function translateIncrementalSections(
+async function translateIncrementalUnits(
   sourceRaw: string,
   cachePath: string,
+  incrementalMode: ActiveCacheIncrementalMode,
   options: {
     provider: TranslateProvider;
     model: string;
@@ -128,7 +134,7 @@ async function translateIncrementalSections(
   translateCostUsd?: number;
   quotaExhausted: boolean;
 }> {
-  const sections = splitMarkdownSections(sourceRaw);
+  const units = splitForIncrementalCache(sourceRaw, incrementalMode);
   const existingSections = options.force ? new Map<string, string>() : await readSectionSidecar(cachePath);
   const translatedByKey = new Map<string, string>();
   let translateModel = options.model;
@@ -136,14 +142,19 @@ async function translateIncrementalSections(
   let translateCostUsd: number | undefined;
   let quotaExhausted = false;
 
-  for (const section of sections) {
-    const cached = existingSections.get(section.sectionKey);
+  for (const unit of units) {
+    const cached = existingSections.get(unit.sectionKey);
     if (cached && !options.force) {
-      translatedByKey.set(section.sectionKey, cached);
+      translatedByKey.set(unit.sectionKey, cached);
       continue;
     }
 
-    const result = await translateMarkdownWithProvider(section.sourceText, {
+    if (!incrementalUnitNeedsTranslation(unit.sourceText)) {
+      translatedByKey.set(unit.sectionKey, unit.sourceText);
+      continue;
+    }
+
+    const result = await translateMarkdownWithProvider(unit.sourceText, {
       provider: options.provider,
       model: options.model,
       docFallbackModel: options.docFallbackModel,
@@ -162,17 +173,17 @@ async function translateIncrementalSections(
     if (result.quotaExhausted) {
       quotaExhausted = true;
       if (cached) {
-        translatedByKey.set(section.sectionKey, cached);
+        translatedByKey.set(unit.sectionKey, cached);
         continue;
       }
-      translatedByKey.set(section.sectionKey, section.sourceText);
+      translatedByKey.set(unit.sectionKey, unit.sourceText);
       continue;
     }
 
-    translatedByKey.set(section.sectionKey, result.text);
+    translatedByKey.set(unit.sectionKey, result.text);
   }
 
-  const translatedBody = assembleSectionTranslatedBody(sections, translatedByKey);
+  const translatedBody = assembleSectionTranslatedBody(units, translatedByKey);
 
   return {
     translatedBody,
@@ -215,17 +226,22 @@ export async function translateDocToGlobalCache(
 
   if (
     !options.force &&
-    config.cacheIncremental === 'section' &&
+    isActiveCacheIncrementalMode(config.cacheIncremental) &&
     !(await flatCacheMatchesSha(cachePath, sourceSha256))
   ) {
-    const repaired = await repairFlatCacheFromSections(cachePath, sourceRaw, {
-      cursorTranslateVersion: 2,
-      sourcePath,
-      sourceSha256,
-      generatedAt: new Date().toISOString(),
-      projectSlug,
-      incremental: 'section',
-    });
+    const repaired = await repairFlatCacheFromSections(
+      cachePath,
+      sourceRaw,
+      {
+        cursorTranslateVersion: 2,
+        sourcePath,
+        sourceSha256,
+        generatedAt: new Date().toISOString(),
+        projectSlug,
+        incremental: config.cacheIncremental,
+      },
+      config.cacheIncremental,
+    );
     if (repaired) {
       return {
         sourcePath,
@@ -291,12 +307,14 @@ export async function translateDocToGlobalCache(
     force: options.force,
   };
 
-  const useIncremental = config.cacheIncremental === 'section';
-  const translation = useIncremental
-    ? await translateIncrementalSections(sourceRaw, cachePath, translateOptions)
+  const incrementalMode = isActiveCacheIncrementalMode(config.cacheIncremental)
+    ? config.cacheIncremental
+    : null;
+  const translation = incrementalMode
+    ? await translateIncrementalUnits(sourceRaw, cachePath, incrementalMode, translateOptions)
     : await translateFullDocument(sourceRaw, translateOptions);
-  const sectionEntries = useIncremental
-    ? (translation as Awaited<ReturnType<typeof translateIncrementalSections>>).sectionEntries
+  const sectionEntries = incrementalMode
+    ? (translation as Awaited<ReturnType<typeof translateIncrementalUnits>>).sectionEntries
     : undefined;
 
   if (translation.quotaExhausted) {
@@ -317,12 +335,12 @@ export async function translateDocToGlobalCache(
   await clearDocTranslateQuotaState();
 
   const meta: DocCacheMeta = {
-    cursorTranslateVersion: useIncremental ? 2 : 1,
+    cursorTranslateVersion: incrementalMode ? 2 : 1,
     sourcePath,
     sourceSha256,
     generatedAt: new Date().toISOString(),
     projectSlug,
-    incremental: useIncremental ? 'section' : undefined,
+    incremental: incrementalMode ?? undefined,
   };
 
   const flatContent = formatDocCache(meta, translation.translatedBody);

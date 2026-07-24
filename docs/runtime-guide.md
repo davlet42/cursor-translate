@@ -43,7 +43,7 @@ Documented output includes `updated_input`. That is how **lazy read** works: bef
 
 **Large cold/stale docs:** when a Cyrillic `.md` file exceeds `cache.lazy_read_max_chars` (default **50 000**) or `cache.lazy_read_max_chunks` (default **3**) and there is no fresh EN cache, lazy translate is **skipped** — the agent reads the Russian original. Cursor shows an `agent_message` with estimated warmup cost and per-read savings; run `cursor-translate doc <file>` to pre-warm.
 
-**Incremental cache:** `cache.incremental: section` (default) re-translates only changed `##` / `###` sections on `doc` / `docs` and on lazy reads for files under the size limit. Section payloads live in a sidecar `*.en.sections.json` next to the flat `*.en.md` served to Read.
+**Incremental cache:** `cache.incremental: block` (default) re-translates only changed callouts / paragraphs / `##`–`###` sections on `doc` / `docs` and on lazy reads for files under the size limit. Payloads live in a sidecar `*.en.sections.json` next to the flat `*.en.md` served to Read. Modes: `block` · `paragraph` · `section` · `off`.
 
 Prompts are **not** tool calls, so this mechanism does not apply to Send.
 

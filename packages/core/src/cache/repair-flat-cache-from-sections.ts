@@ -1,6 +1,7 @@
 import { mkdir, access, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { splitMarkdownSections } from '../markdown/split-markdown-sections.js';
+import type { ActiveCacheIncrementalMode } from '../markdown/split-for-incremental-cache.js';
+import { splitForIncrementalCache } from '../markdown/split-for-incremental-cache.js';
 import type { DocCacheMeta } from './doc-cache-meta.interface.js';
 import { formatDocCache, parseDocCache } from './parse-doc-cache.js';
 import {
@@ -30,12 +31,13 @@ export async function repairFlatCacheFromSections(
   cachePath: string,
   sourceRaw: string,
   meta: DocCacheMeta,
+  incrementalMode: ActiveCacheIncrementalMode = meta.incremental ?? 'block',
 ): Promise<boolean> {
   if (await flatCacheMatchesSha(cachePath, meta.sourceSha256)) {
     return true;
   }
 
-  const sections = splitMarkdownSections(sourceRaw);
+  const sections = splitForIncrementalCache(sourceRaw, incrementalMode);
   if (!sections.length) {
     return false;
   }

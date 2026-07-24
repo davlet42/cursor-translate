@@ -22,7 +22,10 @@ export function parseDocCache(raw: string): { meta: DocCacheMeta; body: string }
   const generatedAt = parseFrontmatterValue(frontmatter, 'cursor-translate-generated-at');
   const projectSlug = parseFrontmatterValue(frontmatter, 'cursor-translate-project');
   const incrementalRaw = parseFrontmatterValue(frontmatter, 'cursor-translate-incremental');
-  const incremental = incrementalRaw === 'section' ? 'section' : undefined;
+  const incremental =
+    incrementalRaw === 'section' || incrementalRaw === 'block' || incrementalRaw === 'paragraph'
+      ? incrementalRaw
+      : undefined;
   const versionRaw = parseFrontmatterValue(frontmatter, 'cursor-translate-version');
   const cursorTranslateVersion = versionRaw ? Number(versionRaw) : 1;
 

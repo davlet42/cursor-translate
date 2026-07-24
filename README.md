@@ -14,7 +14,7 @@ Translation is an **investment** (one nano spend per doc *version*), serving is 
 
 - **Pays off:** stable docs that agents read often — knowledge bases, project registries, ROADMAPs, rules and skills.
 - **First-time translation is the investment:** a fresh doc repays itself in ~1–3 reads (check the `break-even reads` line in your own `report`).
-- **Edits are cheap:** re-translation is **section-incremental** (`cache.incremental: section`, default) — only the changed `##`/`###` sections are re-billed. And since agents `Read` a doc around every `Edit`, reads ≥ edits in practice, and a single read of a mid-size doc typically covers a one-section update. A doc only stays net-negative when it's bulk-rewritten often and rarely read afterwards (one-off scratch notes).
+- **Edits are cheap:** re-translation is **block-incremental** (`cache.incremental: block`, default) — only the changed callout / paragraph / `##` section is re-billed. And since agents `Read` a doc around every `Edit`, reads ≥ edits in practice, and a single read of a mid-size doc typically covers a one-block update. A doc only stays net-negative when it's bulk-rewritten often and rarely read afterwards (one-off scratch notes).
 - **Saves ~nothing:** code-heavy sessions that rarely `Read` Cyrillic markdown — the savings scale directly with how much Cyrillic documentation your agents actually read.
 
 Don't take the pitch's word for it — every cache hit, every translate spend and every missed opportunity is logged. Pull your own numbers any time:
@@ -76,7 +76,7 @@ The plugin's `preToolUse` hook (matcher `Read`): if the file is `.md`/`.mdx` wit
 
 **Large cold/stale docs:** when a file exceeds `cache.lazy_read_max_chars` (default 50 000) or `cache.lazy_read_max_chunks` (default 3), lazy translate is deferred — the agent reads Russian and sees a pre-warm hint. Run `cursor-translate doc <file>` to warm manually.
 
-**Incremental cache:** `cache.incremental: section` (default) re-translates only changed `##` / `###` sections; section payloads live in `*.en.sections.json` sidecars next to flat `*.en.md` files served to Read.
+**Incremental cache:** `cache.incremental: block` (default) re-translates only changed callouts / paragraphs / `##`–`###` sections; payloads live in `*.en.sections.json` sidecars next to flat `*.en.md` files served to Read. Legacy `section` keeps coarse `##`/`###` units only; `paragraph` skips callout-special casing; `off` re-translates the whole file.
 
 ### Shared cache with claude-translate
 

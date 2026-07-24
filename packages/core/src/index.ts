@@ -78,6 +78,20 @@ export type { ResolveDocForReadResult, ResolveDocAction } from './cache/resolve-
 export { splitMarkdownSections } from './markdown/split-markdown-sections.js';
 export type { MarkdownSection } from './markdown/split-markdown-sections.js';
 export {
+  splitMarkdownBlocks,
+  splitSectionIntoBlocks,
+} from './markdown/split-markdown-blocks.js';
+export {
+  splitForIncrementalCache,
+  parseCacheIncrementalMode,
+  isActiveCacheIncrementalMode,
+  incrementalUnitNeedsTranslation,
+} from './markdown/split-for-incremental-cache.js';
+export type {
+  CacheIncrementalMode,
+  ActiveCacheIncrementalMode,
+} from './markdown/split-for-incremental-cache.js';
+export {
   assembleSectionTranslatedBody,
   readSectionSidecar,
   writeSectionSidecar,

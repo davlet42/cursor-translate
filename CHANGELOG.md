@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.2.11 (2026-07-12)
+## 0.2.12 (2026-07-24)
+
+- **Block-level incremental cache** (default `cache.incremental: block`). Cache units are `##`/`###` sections further split into Obsidian callouts / blockquotes, fenced code, and blank-line paragraphs. Editing one revision callout in a long preamble no longer re-translates the entire ~40k-char blob. Modes: `block` (default) · `paragraph` · `section` (legacy) · `off`. Units without Cyrillic are stored as identity (no API call). Sidecar keys remain content hashes in `*.en.sections.json`.
 
 - **Orphan cache GC.** Caches of deleted/renamed docs used to live forever (invalidation is sha-based only). New `cursor-translate cache-gc [--dry-run] [--days N]` command plus a throttled auto-sweep (at most once a day, piggybacked on the translate path): a cache whose `cursor-translate-source` has been missing for over `cache.gc_orphan_days` (default 30, `0` disables) is removed together with its `.en.sections.json` sidecar. The grace period protects git branch switches — the orphan marker is dropped the moment the source reappears, and a later disappearance restarts the clock. Runs are logged to `metrics.jsonl` as `source: "cache_gc"`; entries without recognizable frontmatter are never touched.
 - **Config:** the `cache.ttl_days` template key was dead (parsed nowhere) — replaced by `cache.gc_orphan_days`.

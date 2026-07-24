@@ -11,6 +11,10 @@ import {
   DEFAULT_LAZY_READ_MAX_CHARS,
   DEFAULT_LAZY_READ_MAX_CHUNKS,
 } from '../constants/default-lazy-read-limits.constant.js';
+import {
+  parseCacheIncrementalMode,
+  type CacheIncrementalMode,
+} from '../markdown/split-for-incremental-cache.js';
 import { resolveTranslateHome } from './resolve-translate-home.js';
 import {
   parseTranslateProvider,
@@ -32,7 +36,7 @@ export interface LoadedTranslateConfig {
   lazyReadMaxChars: number;
   lazyReadMaxChunks: number;
   lazyReadHints: boolean;
-  cacheIncremental: 'off' | 'section';
+  cacheIncremental: CacheIncrementalMode;
   gcOrphanDays: number;
 }
 
@@ -49,7 +53,7 @@ const DEFAULTS: LoadedTranslateConfig = {
   lazyReadMaxChars: DEFAULT_LAZY_READ_MAX_CHARS,
   lazyReadMaxChunks: DEFAULT_LAZY_READ_MAX_CHUNKS,
   lazyReadHints: true,
-  cacheIncremental: 'section',
+  cacheIncremental: 'block',
   gcOrphanDays: 30,
 };
 
@@ -184,8 +188,7 @@ export async function loadTranslateConfig(): Promise<LoadedTranslateConfig> {
     DEFAULTS.gcOrphanDays,
   );
   const incrementalRaw = parseNestedScalar(raw, 'cache', 'incremental');
-  const cacheIncremental =
-    incrementalRaw === 'off' ? 'off' : incrementalRaw === 'section' ? 'section' : DEFAULTS.cacheIncremental;
+  const cacheIncremental = parseCacheIncrementalMode(incrementalRaw, DEFAULTS.cacheIncremental);
 
   return {
     enabled,

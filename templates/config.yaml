@@ -42,8 +42,12 @@ cache:
   lazy_read_max_chars: 50000
   lazy_read_max_chunks: 3
   lazy_read_hints: true
-  # Incremental doc cache: re-translate only changed ## / ### sections.
-  incremental: section
+  # Incremental doc cache:
+  #   block (default) — ##/### then callouts / fences / blank-line paragraphs
+  #   paragraph — ##/### then fences / blank-line paragraphs
+  #   section — ## / ### only (legacy coarse units)
+  #   off — always re-translate the whole file
+  incremental: block
 
 glossary:
   file: ~/.cursor/translate-proxy/glossary.yaml

@@ -13,6 +13,7 @@ import { exceedsLazyReadLimit } from './exceeds-lazy-read-limit.js';
 import { formatLazyDeferredHint } from './format-lazy-deferred-hint.js';
 import { resolveCliBrand } from '../config/resolve-cli-brand.js';
 import { repairFlatCacheFromSections } from './repair-flat-cache-from-sections.js';
+import { isActiveCacheIncrementalMode } from '../markdown/split-for-incremental-cache.js';
 
 export type ResolveDocAction =
   | 'passthrough'
@@ -188,15 +189,20 @@ export async function resolveDocForRead(
   }
 
   if (!options.force) {
-    if (config.cacheIncremental === 'section') {
-      await repairFlatCacheFromSections(cachePath, sourceRaw, {
-        cursorTranslateVersion: 2,
-        sourcePath,
-        sourceSha256,
-        generatedAt: new Date().toISOString(),
-        projectSlug,
-        incremental: 'section',
-      });
+    if (isActiveCacheIncrementalMode(config.cacheIncremental)) {
+      await repairFlatCacheFromSections(
+        cachePath,
+        sourceRaw,
+        {
+          cursorTranslateVersion: 2,
+          sourcePath,
+          sourceSha256,
+          generatedAt: new Date().toISOString(),
+          projectSlug,
+          incremental: config.cacheIncremental,
+        },
+        config.cacheIncremental,
+      );
     }
 
     try {
