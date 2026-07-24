@@ -46,7 +46,11 @@ source ~/.zshrc   # or open a new terminal
 Enable the plugin in Cursor:
 
 ```bash
-ln -sf "$(npm root -g)/cursor-translate/plugin" ~/.cursor/plugins/local/cursor-translate
+# Cursor rejects symlinks that point outside ~/.cursor/plugins/local —
+# copy the plugin directory instead of ln -sf:
+rm -rf ~/.cursor/plugins/local/cursor-translate
+mkdir -p ~/.cursor/plugins/local/cursor-translate
+rsync -a "$(npm root -g)/cursor-translate/plugin/" ~/.cursor/plugins/local/cursor-translate/
 ```
 
 Restart Cursor → enable **cursor-translate** in settings. MCP tools `translate` and `resolve_doc` activate via `plugin/mcp.json` after `init --path`.

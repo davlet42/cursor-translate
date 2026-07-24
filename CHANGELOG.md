@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.14
+
+- **Local Cursor plugin install:** Cursor rejects symlinks whose target is outside `~/.cursor/plugins/local` (`loadUserLocalPlugin … rejected`). Docs now say to **copy** the plugin dir (`rsync`) instead of `ln -sf`. Re-run copy after `npm i -g cursor-translate@…`.
+
 ## 0.2.13
 
 - **Fix Read hangs on mid-size Cyrillic docs** (Poieton vault roadmaps/policies): `lazy_read_max_chunks` now counts **incremental Cyrillic units** (`cache.incremental: block|paragraph|section`), not size-based API slices. A ~12k file was 1 API chunk but 60+ block units — lazy Read used to spawn dozens of `agent` CLI calls and block the UI for minutes (`hooks.lazy_read_timeout_sec` default was 600).

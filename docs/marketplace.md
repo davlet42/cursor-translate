@@ -58,7 +58,11 @@ Copy-paste listing text: **[marketplace-listing.md](./marketplace-listing.md)**
 ## Local test
 
 ```bash
-ln -sf "$(pwd)/plugin" ~/.cursor/plugins/local/cursor-translate
+# Cursor rejects symlinks that point outside ~/.cursor/plugins/local —
+# copy the plugin directory instead of ln -sf:
+rm -rf ~/.cursor/plugins/local/cursor-translate
+mkdir -p ~/.cursor/plugins/local/cursor-translate
+rsync -a "$(pwd)/plugin/" ~/.cursor/plugins/local/cursor-translate/
 ```
 
 Reload Cursor → **Customize** → enable plugin → verify rules + MCP.
